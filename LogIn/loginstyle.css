@@ -1,0 +1,292 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: sans-serif;
+}
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-image: url(img2.jpg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+h2 {
+  color: #ffffff;
+  font-size: 1.2em;
+  text-decoration: underline #ffffff ;
+  text-align: center;
+  margin-bottom: 10px;
+  font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+  animation: glow 1.5s infinite alternate;
+} 
+.login-box {
+  position: relative;
+  width: 400px;
+  height: 450px;
+  padding: 40px;
+  background: linear-gradient(to bottom, #000000, #383a3d);
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  flex-direction: column;
+  display: flex;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+  opacity: 0.9;
+}
+.input-box {
+  width: 350px;
+  margin: 20px 0;
+  border-bottom: 1px solid #ccc;
+  border-radius: 5px;
+  position: relative;
+}
+.input-box label {
+  position: absolute;
+  top: 50%;
+  left: 5px;
+  transform: translateY(-50%);
+  font-size: 1em;
+  color: #ffffff;
+  pointer-events: none;
+  font-size: 0.75em;
+  transition: 0.5s;
+}
+.input-box input:focus ~ label,
+.input-box input:valid ~ label {
+  top: -5px;
+  color: #ffffff;
+  font-size: 0.75em;
+}
+.input-box input {
+  width: 100%;
+  height: 40px;
+  color: #a187e9;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.8em;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  padding: 0 35px 0 5px;
+}
+.input-box .icon {
+  position: absolute;
+  right: 9px;
+  font-size: 1em;
+  color: #ccc;
+  line-height: 50%;
+  top: 40%;
+}
+.remember-forgate {
+  margin: -15px 0 20px;
+  font-size: 0.75em;
+  color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+.remember-forgate label input {
+  margin-right: 3px;
+  font-size: 0.75em;
+}
+.remember-forgate a {
+  color: #ffffff;
+  text-decoration: underline;
+  font-size: 0.9em;
+}
+.remember-forgate a:hover {
+  text-decoration: underline;
+  color: #fcfcfc;
+  font-weight: bold;
+}
+button {
+  width: 350px;
+  height: 30px;
+  border: 1px solid #fff;
+  background: #e5f1f7;
+  color: #000000;
+  font-size: 0.8em;
+  border-radius: 10px;
+  cursor: pointer;
+  opacity: 1;
+  font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+}
+button:hover {
+  background: #7a53e6;
+  color: #ffffff;
+  transition: 0.5s;
+}
+.register {
+  margin: 20px 0 0;
+  font-size: 0.8em;
+  color: #ffffff;
+  font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+.register p {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+.register a {
+  color: #ffffff;
+  text-decoration: underline;
+  font-size: 0.9em;
+}
+.register a:hover {
+  text-decoration: underline;
+  font-weight: bold;
+  color: #ffffff;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: sans-serif;
+}
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-image: url(img2.jpg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+h2 {
+  color: #ffffff;
+  font-size: 1.2em;
+  text-decoration: underline #ffffff ;
+  text-align: center;
+  margin-bottom: 10px;
+  font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+  animation: glow 1.5s infinite alternate;
+} 
+.login-box {
+  position: relative;
+  width: 400px;
+  height: 450px;
+  padding: 40px;
+  background: linear-gradient(to bottom, #000000, #383a3d);
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  flex-direction: column;
+  display: flex;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+  opacity: 0.9;
+}
+.input-box {
+  width: 350px;
+  margin: 20px 0;
+  border-bottom: 1px solid #ccc;
+  border-radius: 5px;
+  position: relative;
+}
+.input-box label {
+  position: absolute;
+  top: 50%;
+  left: 5px;
+  transform: translateY(-50%);
+  font-size: 1em;
+  color: #ffffff;
+  pointer-events: none;
+  font-size: 0.75em;
+  transition: 0.5s;
+}
+.input-box input:focus ~ label,
+.input-box input:valid ~ label {
+  top: -5px;
+  color: #ffffff;
+  font-size: 0.75em;
+}
+.input-box input {
+  width: 100%;
+  height: 40px;
+  color: #a187e9;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.8em;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  padding: 0 35px 0 5px;
+}
+.input-box .icon {
+  position: absolute;
+  right: 9px;
+  font-size: 1em;
+  color: #ccc;
+  line-height: 50%;
+  top: 40%;
+}
+.remember-forgate {
+  margin: -15px 0 20px;
+  font-size: 0.75em;
+  color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+.remember-forgate label input {
+  margin-right: 3px;
+  font-size: 0.75em;
+}
+.remember-forgate a {
+  color: #ffffff;
+  text-decoration: underline;
+  font-size: 0.9em;
+}
+.remember-forgate a:hover {
+  text-decoration: underline;
+  color: #fcfcfc;
+  font-weight: bold;
+}
+button {
+  width: 350px;
+  height: 30px;
+  border: 1px solid #fff;
+  background: #e5f1f7;
+  color: #000000;
+  font-size: 0.8em;
+  border-radius: 10px;
+  cursor: pointer;
+  opacity: 1;
+  font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+}
+button:hover {
+  background: #7a53e6;
+  color: #ffffff;
+  transition: 0.5s;
+}
+.register {
+  margin: 20px 0 0;
+  font-size: 0.8em;
+  color: #ffffff;
+  font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+.register p {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+.register a {
+  color: #ffffff;
+  text-decoration: underline;
+  font-size: 0.9em;
+}
+.register a:hover {
+  text-decoration: underline;
+  font-weight: bold;
+  color: #ffffff;
+}

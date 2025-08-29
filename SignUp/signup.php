@@ -10,7 +10,7 @@
 
 <body>
     <div class="signup-box">
-            <h2>Sign Up With Your Informations</h2>
+        <h2>Sign Up With Your Informations</h2>
         <div class="left">
             <div class="input-box">
                 <span class="icon">
@@ -63,30 +63,30 @@
                     <ion-icon name="mail-unread"></ion-icon>
                 </span>
                 <select name="" class="text" id="">
-                  <option value="" disabled selected hidden> Designation</option>
-                  <option value="">Manager</option>
-                  <option value="">Employee</option>
-                  <option value="">Customer</option>
-                  <option value="">Admin</option>
+                    <option value="" disabled selected hidden> Designation</option>
+                    <option value="">Manager</option>
+                    <option value="">Employee</option>
+                    <option value="">Customer</option>
+                    <option value="">Admin</option>
                 </select>
             </div>
-             <div class="input-box">
+            <div class="input-box">
                 <span class="icon">
                     <ion-icon name="mail-unread"></ion-icon>
                 </span>
                 <select name="" class="text" id="">
-                  <option value="" disabled selected hidden> Department</option>
-                  <option value="">Manager</option>
-                  <option value="">Employee</option>
-                  <option value="">Customer</option>
-                  <option value="">Admin</option>
+                    <option value="" disabled selected hidden> Department</option>
+                    <option value="">Manager</option>
+                    <option value="">Employee</option>
+                    <option value="">Customer</option>
+                    <option value="">Admin</option>
                 </select>
             </div>
 
-        </div>
+        </div class="checkbox">
+        <p><input type="checkbox">I confirm that my information is accurate and agree to the Terms & Conditions and Privacy Policy.</input></p>
         <div>
             <button type="submit" class="signup-btn">Sign Up</button>
         </div>
     </div>
 </body>
-

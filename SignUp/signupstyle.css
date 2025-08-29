@@ -60,7 +60,7 @@ body {
 .signup-box p {
   position: absolute;
   bottom: 8%;
-  left: 41%;
+  left: 43%;
   transform: translateX(-50%);
   color: #fff;
   font-size: 12px;
@@ -69,6 +69,7 @@ body {
   white-space: nowrap;
   display: flex;
   gap: 5px;
+  font-weight: bold;
 }
 .input-box {
   width: 250px;
@@ -132,11 +133,11 @@ body {
 }
 button {
   position: absolute;
-  bottom: -10%;
+  bottom: 2%;
   left: 50%;
   transform: translate(-50%);
   width: 350px;
-  height: 30px;
+  height: 20px;
   border: 1px solid #fff;
   background: #e5f1f7;
   color: #000000;

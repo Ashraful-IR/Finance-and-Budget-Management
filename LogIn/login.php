@@ -35,7 +35,7 @@
         </div>
         <div class="register">
             <p>Dont have an account?
-                <a href="/SignUp/signup.php">Create an account</a>
+                <a href="../SignUp/signup.php">Create an account</a>
             </p>
         </div>
     </div>

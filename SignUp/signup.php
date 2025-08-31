@@ -19,7 +19,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error = "All section should be filled";
     } else {
 
-        $hash_pass = password_hash($password, PASSWORD_DEFAULT);
         $sql = "INSERT INTO register (username , password , email) VALUES ('$username','$hash_pass','$email')";
 
 

@@ -19,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error = "All section should be filled";
     } else {
 
-        $sql = "INSERT INTO signup (firstname,lastname,phonenumber, password , email.confirmpassword,designation,department) VALUES ('$fistname','$lastname','$email','$phonenumber','$password','$confirmpassword','$designation','$department')";
+        $sql = "INSERT INTO signup (First_Name,Last_Name,Email,Phone_Number, Password,Confirm_Password,Designation,Department) VALUES ('$firstname','$lastname','$email','$phonenumber','$password','$confirmpassword','$designation','$department')";
 
 
 
@@ -45,6 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 
 <body>
+    <form method="post" action="">
     <div class="signup-box">
         <h2>Sign Up With Your Informations</h2>
         <div class="left">
@@ -100,10 +101,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </span>
                 <select name="designation" class="text" id="">
                     <option value="" disabled selected hidden> Designation</option>
-                    <option value="">Manager</option>
-                    <option value="">Employee</option>
-                    <option value="">Customer</option>
-                    <option value="">Admin</option>
+                    <option value="manager">Manager</option>
+                    <option value="employe">Employee</option>
+                    <option value="customer">Customer</option>
+                    <option value="admin">Admin</option>
                 </select>
             </div>
             <div class="input-box">
@@ -112,10 +113,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </span>
                 <select name="department" class="text" id="">
                     <option value="" disabled selected hidden> Department</option>
-                    <option value="">Manager</option>
-                    <option value="">Employee</option>
-                    <option value="">Customer</option>
-                    <option value="">Admin</option>
+                    <option value="earth">Manager</option>
+                    <option value="mars">Employee</option>
+                    <option value="hupiter">Customer</option>
+                    <option value="moon">Admin</option>
                 </select>
             </div>
 
@@ -125,4 +126,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <button type="submit" class="signup-btn">Sign Up</button>
         </div>
     </div>
+</form>
 </body>

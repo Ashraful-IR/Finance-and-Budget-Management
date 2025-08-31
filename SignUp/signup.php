@@ -19,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error = "All section should be filled";
     } else {
 
-        $sql = "INSERT INTO register (username , password , email) VALUES ('$username','$hash_pass','$email')";
+        $sql = "INSERT INTO signup (firstname,lastname,phonenumber, password , email.confirmpassword,designation,department) VALUES ('$fistname','$lastname','$email','$phonenumber','$password','$confirmpassword','$designation','$department')";
 
 
 

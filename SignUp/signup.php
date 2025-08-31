@@ -14,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $designation = $_POST["designation"];
     $department = $_POST["department"];
 
-    if (empty($firstname) || empty($lastname) || empty($email) || empty($email) || empty($phonenumber)) {
+    if (empty($firstname) || empty($lastname) || empty($email) || empty($phonenumber) || empty($password) || empty($confirmpassword) || empty($designation) || empty($department)) {
 
         $error = "All section should be filled";
     } else {

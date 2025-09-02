@@ -164,8 +164,11 @@ th, td {
     padding: 12px;
     text-align: left;
 }
+ .active { display: block; }
+ .inactive { display: none; }
 .status-active { color: #10b981; font-weight: 600; }
 .status-inactive { color: #ef4444; font-weight: 600; }
+
 
 @media (max-width: 768px) {
     .sidebar {

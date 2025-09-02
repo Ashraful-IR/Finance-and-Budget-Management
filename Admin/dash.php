@@ -1,6 +1,29 @@
 <?php
 include "configdb.php";
 
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ajax']) && $_POST['ajax'] === 'deleteUser') {
+    header('Content-Type: application/json');
+    $userId = isset($_POST['userId']) ? (int)$_POST['userId'] : 0;
+    $ok = false;
+    if ($userId > 0) {
+        if ($stmt = $conn->prepare("DELETE FROM Users WHERE id = ?")) {
+            $stmt->bind_param("i", $userId);
+            $ok = $stmt->execute();
+            $stmt->close();
+        }
+    }
+    echo json_encode(["success" => $ok]);
+    exit;
+}
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['toggleUser'])) {
+    $userId = (int)$_POST['userId'];
+    $newStatus = ($_POST['newStatus'] === 'Active') ? 'Active' : 'Inactive';
+    $conn->query("UPDATE Users SET status='$newStatus' WHERE id=$userId");
+    header("Location: dash.php#statusUser");
+    exit();
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['createUser'])) {
     $fname = $_POST['fname'];
     $lname = $_POST['lname'];
@@ -14,11 +37,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['createUser'])) {
     if ($password !== $cpassword) {
         $error = "Passwords do not match!";
     } else {
-        $sql_insert = "INSERT INTO Users (fname, lname, email, phone, pass, desi, dept) 
-                        VALUES ('$fname', '$lname', '$email', '$phone', '$password', '$designation', '$department')";
-
+        $sql_insert = "INSERT INTO Users (fname, lname, email, phone, pass, desi, dept, status) 
+                       VALUES ('$fname', '$lname', '$email', '$phone', '$password', '$designation', '$department', 'Active')";
         if ($conn->query($sql_insert) === TRUE) {
-            header("Location: dash.php");
+            header("Location: dash.php#users");
             exit();
         } else {
             $error = "Error: " . $sql_insert . "<br>" . $conn->error;
@@ -26,41 +48,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['createUser'])) {
     }
 }
 
-$sql = "SELECT * FROM Users"; 
-$result = $conn->query($sql);
+$allUsers    = $conn->query("SELECT * FROM Users");
+$statusUsers = $conn->query("SELECT id, fname, lname, desi, status FROM Users");
 
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
+if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Admin Dashboard - User Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="dashstyle.css" type="text/css">
     <style>
-        .active {
-            display: block;
-        }
-        .inactive {
-            display: none;
-        }
+        .active { display: block; }
+        .inactive { display: none; }
+        .status-active { color: #10b981; font-weight: 600; }
+        .status-inactive { color: #ef4444; font-weight: 600; }
     </style>
 </head>
-
 <body>
-
     <div class="sidebar">
         <h2>Admin</h2>
-        <a href="#" id="dashboardLink" onclick="showSection('dashboard')">Dashboard</a>
-        <a href="#" id="usersLink" onclick="showSection('users')">Users</a>
-        <a href="#" id="createUserLink" onclick="showSection('createUser')">Create User</a>
+        <a href="#" onclick="showSection('dashboard')">Dashboard</a>
+        <a href="#" onclick="showSection('users')">Users</a>
+        <a href="#" onclick="showSection('createUser')">Create User</a>
+        <a href="#" onclick="showSection('statusUser')">User Status</a>
         <a href="#">Departments</a>
         <a href="#">Roles</a>
         <a href="#">Settings</a>
@@ -68,9 +82,7 @@ if ($conn->connect_error) {
     </div>
 
     <div class="main-content">
-        <header>
-            <h1>Admin Dashboard</h1>
-        </header>
+        <header><h1>Admin Dashboard</h1></header>
 
         <div class="container">
             <section id="dashboard" class="active">
@@ -83,73 +95,59 @@ if ($conn->connect_error) {
                 <table>
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>First Name</th>
-                            <th>Last Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Designation</th>
-                            <th>Department</th>
-                            <th>Password</th>
-                            <th>Actions</th>
+                            <th>ID</th><th>First Name</th><th>Last Name</th>
+                            <th>Email</th><th>Phone</th>
+                            <th>Designation</th><th>Department</th>
+                            <th>Password</th><th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <?php
-                        if ($result->num_rows > 0) {
-                            while ($row = $result->fetch_assoc()) {
-                                echo "<tr>";
-                                echo "<td>" . $row['id'] . "</td>";
-                                echo "<td>" . $row['fname'] . "</td>";
-                                echo "<td>" . $row['lname'] . "</td>";
-                                echo "<td>" . $row['email'] . "</td>";
-                                echo "<td>" . $row['phone'] . "</td>";
-                                echo "<td>" . $row['desi'] . "</td>";
-                                echo "<td>" . $row['dept'] . "</td>";
-                                echo "<td>" . $row['pass'] . "</td>";
-                                echo "<td>
-                                        <button class='danger'>Deactivate</button>
-                                        <button class='danger'>Delete</button>
-                                    </td>";
-                                echo "</tr>";
-                            }
-                        } else {
-                            echo "<tr><td colspan='9'>No users found</td></tr>";
-                        }
-                        ?>
+                    <tbody id="usersBody">
+                        <?php if ($allUsers && $allUsers->num_rows > 0): ?>
+                            <?php while ($row = $allUsers->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?php echo $row['id']; ?></td>
+                                    <td><?php echo $row['fname']; ?></td>
+                                    <td><?php echo $row['lname']; ?></td>
+                                    <td><?php echo $row['email']; ?></td>
+                                    <td><?php echo $row['phone']; ?></td>
+                                    <td><?php echo $row['desi']; ?></td>
+                                    <td><?php echo $row['dept']; ?></td>
+                                    <td><?php echo $row['pass']; ?></td>
+                                    <td>
+                                        <button class="danger" type="button" onclick="deleteUser(<?php echo $row['id']; ?>, this)">Delete</button>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr><td colspan="9">No users found</td></tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </section>
 
             <section id="createUser" class="inactive">
                 <h2>Create New User</h2>
-
-                <?php if (isset($success)): ?>
-                    <p class="success"><?php echo $success; ?></p>
-                <?php endif; ?>
-
-                <?php if (isset($error)): ?>
-                    <p class="error"><?php echo $error; ?></p>
-                <?php endif; ?>
+                <?php if (isset($success)): ?><p class="success"><?php echo $success; ?></p><?php endif; ?>
+                <?php if (isset($error)): ?><p class="error"><?php echo $error; ?></p><?php endif; ?>
 
                 <form method="POST" action="">
                     <label>First Name:</label>
-                    <input type="text" name="fname" placeholder="First Name" required>
+                    <input type="text" name="fname" required placeholder="First Name">
 
                     <label>Last Name:</label>
-                    <input type="text" name="lname" placeholder="Last Name" required>
+                    <input type="text" name="lname" required placeholder="Last Name">
 
                     <label>Email:</label>
-                    <input type="email" name="email" placeholder="Email" required>
+                    <input type="email" name="email" required placeholder="Email">
 
                     <label>Phone Number:</label>
-                    <input type="tel" name="phone" placeholder="Phone Number" required>
+                    <input type="tel" name="phone" required placeholder="Phone Number">
 
                     <label>Password:</label>
-                    <input type="password" name="password" placeholder="Password" required>
+                    <input type="password" name="password" required placeholder="Password">
 
                     <label>Confirm Password:</label>
-                    <input type="password" name="cpassword" placeholder="Confirm Password" required>
+                    <input type="password" name="cpassword" required placeholder="Confirm Password">
 
                     <label>Designation:</label>
                     <select name="designation" required>
@@ -171,6 +169,55 @@ if ($conn->connect_error) {
                 </form>
             </section>
 
+            <section id="statusUser" class="inactive">
+                <h2>User Status</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th><th>Name</th><th>Designation</th><th>Status</th><th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        if ($statusUsers && $statusUsers->num_rows > 0) {
+                            while ($row = $statusUsers->fetch_assoc()) {
+                                $id     = $row['id'];
+                                $name   = $row['fname'] . " " . $row['lname'];
+                                $desi   = $row['desi'];
+                                $status = $row['status'];
+                                echo "<tr>";
+                                echo "<td>$id</td>";
+                                echo "<td>$name</td>";
+                                echo "<td>$desi</td>";
+                                if (strtolower($status) === "active") {
+                                    echo "<td><span class='status-active'>$status</span></td>";
+                                    echo "<td>
+                                            <form method='POST'>
+                                                <input type='hidden' name='userId' value='$id'>
+                                                <input type='hidden' name='newStatus' value='Inactive'>
+                                                <button class='danger' type='submit' name='toggleUser'>Deactivate</button>
+                                            </form>
+                                          </td>";
+                                } else {
+                                    echo "<td><span class='status-inactive'>$status</span></td>";
+                                    echo "<td>
+                                            <form method='POST'>
+                                                <input type='hidden' name='userId' value='$id'>
+                                                <input type='hidden' name='newStatus' value='Active'>
+                                                <button class='success' type='submit' name='toggleUser'>Activate</button>
+                                            </form>
+                                          </td>";
+                                }
+                                echo "</tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='5'>No users found</td></tr>";
+                        }
+                        ?>
+                    </tbody>
+                </table>
+            </section>
+
         </div>
     </div>
 
@@ -179,15 +226,51 @@ if ($conn->connect_error) {
             document.getElementById("dashboard").classList.add("inactive");
             document.getElementById("users").classList.add("inactive");
             document.getElementById("createUser").classList.add("inactive");
-
+            document.getElementById("statusUser").classList.add("inactive");
             document.getElementById(section).classList.remove("inactive");
         }
+
+        window.addEventListener("load", function() {
+            if (window.location.hash) {
+                let section = window.location.hash.substring(1); 
+                if (document.getElementById(section)) {
+                    showSection(section);
+                }
+            }
+        });
+
+        function deleteUser(id, btn) {
+            if (!confirm('Are you sure you want to delete this user?')) return;
+            const data = new URLSearchParams();
+            data.append('ajax','deleteUser');
+            data.append('userId', id);
+            fetch('dash.php', {
+                method: 'POST',
+                headers: {'Content-Type':'application/x-www-form-urlencoded'},
+                body: data.toString()
+            })
+            .then(r => r.json())
+            .then(j => {
+                if (j && j.success) {
+                    const tr = btn.closest('tr');
+                    const tbody = tr.parentElement;
+                    tr.remove();
+                    if (tbody.children.length === 0) {
+                        const empty = document.createElement('tr');
+                        const td = document.createElement('td');
+                        td.colSpan = 9;
+                        td.textContent = 'No users found';
+                        empty.appendChild(td);
+                        tbody.appendChild(empty);
+                    }
+                } else {
+                    alert('Delete failed');
+                }
+            })
+            .catch(() => alert('Delete failed'));
+        }
     </script>
-
 </body>
-
 </html>
 
-<?php
-$conn->close();
-?>
+<?php $conn->close(); ?>

@@ -1,5 +1,6 @@
 <?php
-include "logindb.php"; 
+session_start();
+include "logindb.php";
 
 $error = "";
 
@@ -10,26 +11,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($email === "" || $password === "") {
         $error = "Please enter email and password.";
     } else {
-        
-        $sql = "SELECT desi, status FROM users WHERE email='$email' AND pass='$password' LIMIT 1";
+        $sql = "SELECT id, fname, lname, desi, status FROM users WHERE email='$email' AND pass='$password' LIMIT 1";
         $result = $conn->query($sql);
 
         if ($result && $result->num_rows === 1) {
             $row = $result->fetch_assoc();
-            $role   = $row["desi"];
-            $status = $row["status"];
+            $role   = strtolower($row["desi"]);
+            $status = strtolower($row["status"]);
 
-            if ($status === "Inactive") {
+            if ($status === "inactive") {
                 $error = "Sorry, your account is currently inactive. Please contact with Admin.";
             } else {
-                if ($role === "Admin") {
+                $_SESSION["user_id"]   = $row["id"];
+                $_SESSION["user_name"] = $row["fname"] . " " . $row["lname"];
+                $_SESSION["user_role"] = $row["desi"];
+                $_SESSION["user_status"] = $row["status"];
+
+                if ($role === "admin") {
                     header("Location: ../Admin/dash.php");
                     exit();
-                } elseif ($role === "Manager") {
+                } elseif ($role === "manager") {
                     header("Location: ../Manager/dash.php");
                     exit();
                 } else {
-                    $error = "Access allowed only for Admin or Manager.";
+                    $error = "Access allowed only for Admin,Manager,Employee and Auditor";
                 }
             }
         } else {

@@ -1,18 +1,13 @@
 <?php
 include "configdb.php";
 
+if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
+
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ajax']) && $_POST['ajax'] === 'deleteUser') {
     header('Content-Type: application/json');
-    $userId = isset($_POST['userId']) ? (int)$_POST['userId'] : 0;
-    $ok = false;
-    if ($userId > 0) {
-        if ($stmt = $conn->prepare("DELETE FROM Users WHERE id = ?")) {
-            $stmt->bind_param("i", $userId);
-            $ok = $stmt->execute();
-            $stmt->close();
-        }
-    }
-    echo json_encode(["success" => $ok]);
+    $userId = (int)($_POST['userId'] ?? 0);
+    $ok = $userId > 0 ? $conn->query("DELETE FROM Users WHERE id=$userId") : false;
+    echo json_encode(["success" => $ok ? true : false]);
     exit;
 }
 
@@ -25,33 +20,48 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['toggleUser'])) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['createUser'])) {
-    $fname = $_POST['fname'];
-    $lname = $_POST['lname'];
-    $email = $_POST['email'];
-    $phone = $_POST['phone'];
-    $password = $_POST['password'];
-    $cpassword = $_POST['cpassword'];
+    $fname       = $_POST['fname'];
+    $lname       = $_POST['lname'];
+    $email       = $_POST['email'];
+    $phone       = $_POST['phone'];
+    $password    = $_POST['password'];
+    $cpassword   = $_POST['cpassword'];
     $designation = $_POST['designation'];
-    $department = $_POST['department'];
+    $department  = $_POST['department'];
 
     if ($password !== $cpassword) {
         $error = "Passwords do not match!";
     } else {
-        $sql_insert = "INSERT INTO Users (fname, lname, email, phone, pass, desi, dept, status) 
-                       VALUES ('$fname', '$lname', '$email', '$phone', '$password', '$designation', '$department', 'Active')";
-        if ($conn->query($sql_insert) === TRUE) {
-            header("Location: dash.php#users");
-            exit();
+        $check = $conn->query("SELECT id FROM Users WHERE email='$email' LIMIT 1");
+        if ($check && $check->num_rows > 0) {
+            $error = "Email already exists. Please use another email.";
         } else {
-            $error = "Error: " . $sql_insert . "<br>" . $conn->error;
+            $sql_insert = "INSERT INTO Users (fname, lname, email, phone, pass, desi, dept, status) VALUES ('$fname', '$lname', '$email', '$phone', '$password', '$designation', '$department', 'Active')";
+            if ($conn->query($sql_insert) === TRUE) {
+                header("Location: dash.php#createUser");
+                exit();
+            } else {
+                $error = "Error: " . $sql_insert . "<br>" . $conn->error;
+            }
         }
     }
 }
 
-$allUsers    = $conn->query("SELECT * FROM Users");
-$statusUsers = $conn->query("SELECT id, fname, lname, desi, status FROM Users");
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['updatePassword'])) {
+    $userId      = (int)($_POST['userId'] ?? 0);
+    $newPassword = $_POST['newPassword'] ?? '';
+    if ($userId > 0 && $newPassword !== '') {
+        $conn->query("UPDATE Users SET pass='$newPassword', cpass='$newPassword' WHERE id=$userId");
+        header("Location: dash.php#accountRecovery");
+        exit();
+    } else {
+        $error = "Please enter a new password.";
+    }
+}
 
-if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
+$allUsers      = $conn->query("SELECT * FROM Users");
+$statusUsers   = $conn->query("SELECT id, fname, lname, desi, status FROM Users");
+$recoveryUsers = $conn->query("SELECT id, fname, lname, pass FROM Users");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -61,12 +71,7 @@ if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
     <title>Admin Dashboard - User Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="dashstyle.css" type="text/css">
-    <style>
-        .active { display: block; }
-        .inactive { display: none; }
-        .status-active { color: #10b981; font-weight: 600; }
-        .status-inactive { color: #ef4444; font-weight: 600; }
-    </style>
+
 </head>
 <body>
     <div class="sidebar">
@@ -75,8 +80,7 @@ if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
         <a href="#" onclick="showSection('users')">Users</a>
         <a href="#" onclick="showSection('createUser')">Create User</a>
         <a href="#" onclick="showSection('statusUser')">User Status</a>
-        <a href="#">Departments</a>
-        <a href="#">Roles</a>
+        <a href="#" onclick="showSection('accountRecovery')">Account Recovery</a>
         <a href="#">Settings</a>
         <a href="#">Account Management</a>
     </div>
@@ -85,6 +89,8 @@ if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
         <header><h1>Admin Dashboard</h1></header>
 
         <div class="container">
+            <?php if (isset($error)): ?><div class="msg"><?php echo $error; ?></div><?php endif; ?>
+
             <section id="dashboard" class="active">
                 <h2>Welcome to the Dashboard</h2>
                 <p>Here is your general dashboard content...</p>
@@ -98,7 +104,7 @@ if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
                             <th>ID</th><th>First Name</th><th>Last Name</th>
                             <th>Email</th><th>Phone</th>
                             <th>Designation</th><th>Department</th>
-                            <th>Password</th><th>Actions</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="usersBody">
@@ -112,10 +118,7 @@ if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
                                     <td><?php echo $row['phone']; ?></td>
                                     <td><?php echo $row['desi']; ?></td>
                                     <td><?php echo $row['dept']; ?></td>
-                                    <td><?php echo $row['pass']; ?></td>
-                                    <td>
-                                        <button class="danger" type="button" onclick="deleteUser(<?php echo $row['id']; ?>, this)">Delete</button>
-                                    </td>
+                                    <td><button class="danger" type="button" onclick="deleteUser(<?php echo $row['id']; ?>, this)">Delete</button></td>
                                 </tr>
                             <?php endwhile; ?>
                         <?php else: ?>
@@ -151,18 +154,18 @@ if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
 
                     <label>Designation:</label>
                     <select name="designation" required>
-                        <option value="admin">Admin</option>
-                        <option value="manager">Manager</option>
-                        <option value="employee">Employee</option>
-                        <option value="auditor">Auditor</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Manager">Manager</option>
+                        <option value="Employee">Employee</option>
+                        <option value="Auditor">Auditor</option>
                     </select>
 
                     <label>Department:</label>
                     <select name="department" required>
-                        <option value="sales">Sales</option>
-                        <option value="finance">Finance</option>
-                        <option value="engineering">Engineering</option>
-                        <option value="hr">HR</option>
+                        <option value="Sales">Sales</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="HR">HR</option>
                     </select>
 
                     <button class="primary" type="submit" name="createUser">Create User</button>
@@ -218,6 +221,42 @@ if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
                 </table>
             </section>
 
+            <section id="accountRecovery" class="inactive">
+                <h2>Account Recovery</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th><th>Name</th><th>Current Password</th><th>New Password</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        if ($recoveryUsers && $recoveryUsers->num_rows > 0) {
+                            while ($r = $recoveryUsers->fetch_assoc()) {
+                                $rid   = $r['id'];
+                                $rname = $r['fname'] . " " . $r['lname'];
+                                $rpass = $r['pass'];
+                                echo "<tr>";
+                                echo "<td>{$rid}</td>";
+                                echo "<td>{$rname}</td>";
+                                echo "<td>{$rpass}</td>";
+                                echo "<td>
+                                        <form method='POST' class='inline-form'>
+                                            <input type='hidden' name='userId' value='{$rid}'>
+                                            <input type='password' name='newPassword' placeholder='New password' required>
+                                            <button type='submit' name='updatePassword'>Update password</button>
+                                        </form>
+                                      </td>";
+                                echo "</tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='5'>No users found</td></tr>";
+                        }
+                        ?>
+                    </tbody>
+                </table>
+            </section>
+
         </div>
     </div>
 
@@ -227,12 +266,13 @@ if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
             document.getElementById("users").classList.add("inactive");
             document.getElementById("createUser").classList.add("inactive");
             document.getElementById("statusUser").classList.add("inactive");
+            document.getElementById("accountRecovery").classList.add("inactive");
             document.getElementById(section).classList.remove("inactive");
         }
 
         window.addEventListener("load", function() {
             if (window.location.hash) {
-                let section = window.location.hash.substring(1); 
+                let section = window.location.hash.substring(1);
                 if (document.getElementById(section)) {
                     showSection(section);
                 }
@@ -272,5 +312,4 @@ if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
     </script>
 </body>
 </html>
-
 <?php $conn->close(); ?>

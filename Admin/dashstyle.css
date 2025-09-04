@@ -178,3 +178,21 @@ th, td {
         margin-left: 200px;
     }
 }
+
+.inline-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.inline-form input[type="password"] {
+  padding: 6px;
+}
+.inline-form button {
+  padding: 6px 10px;
+}
+
+.msg {
+  margin: 8px 0;
+  color: #d33;
+  font-weight: 600;
+}

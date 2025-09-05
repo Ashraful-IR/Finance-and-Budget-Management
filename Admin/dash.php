@@ -181,6 +181,7 @@ $managers = $conn->query("SELECT id, fname, lname FROM Users WHERE desi='Manager
                             <th>ID</th><th>First Name</th><th>Last Name</th>
                             <th>Email</th><th>Phone</th>
                             <th>Designation</th><th>Department</th>
+                            
                             <th>Actions</th>
                         </tr>
                     </thead>

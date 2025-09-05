@@ -40,8 +40,17 @@
                 <ion-icon name="person-outline"></ion-icon> Account
             </a>
         </div>
+        
 
     </div>
+    
+    <div class="content"> 
+        <h1>Welcome to the Auditor Dashboard</h1>
+        <p>Select an option from the menu to get started.</p>
+    </div>
+
+
+    
 
 
 

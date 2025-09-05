@@ -65,6 +65,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: left;
+  transition: width 0.3s ease;
 }
 
 .menu h2 {
@@ -110,3 +111,78 @@ body {
   color: #ffffff;
 }
 
+.content {
+  padding: 20px;
+}
+
+.section {
+  display: none;
+}
+
+.section.active {
+  display: block;
+}
+
+form input,
+form button {
+  margin: 5px 0;
+  padding: 8px;
+  width: 100%;
+  max-width: 300px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+ul li {
+  margin: 8px 0;
+  padding: 8px;
+  background: #ecf0f1;
+  border-radius: 5px;
+}
+
+ul li button {
+  margin-left: 10px;
+  background: red;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.container.full-add .content {
+  width: calc(100% - 60px);
+  transition: width 0.3s ease;
+}
+.menu.collapsed {
+  width: 60px !important;
+}
+
+.menu.collapsed a {
+  width: 100%;
+  padding: 12px 0;
+  text-align: center;
+}
+
+.menu.collapsed a span {
+  display: none;
+}
+
+.menu a span {
+  vertical-align: middle;
+}
+
+.menu a ion-icon {
+  font-size: 1.5rem;
+}
+
+.menu.collapsed h2 {
+  display: none;
+}
+
+.menu.collapsed .menu-toggle {
+  display: block;
+  margin-left: auto;
+}

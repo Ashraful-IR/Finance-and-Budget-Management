@@ -8,10 +8,10 @@ function buildFilterSQL($conn, $data) {
     $sql = "SELECT * FROM users WHERE 1=1";
     $mapping = [
         'id' => fn($v)=> "id=".(int)$v,
-        'category' => fn($v)=> "desi='".$conn->real_escape_string($v)."'",
-        'status' => fn($v)=> "status='".$conn->real_escape_string($v)."'",
-        'date_from' => fn($v)=> "date>='".$conn->real_escape_string($v)."'",
-        'date_to' => fn($v)=> "date<='".$conn->real_escape_string($v)."'"
+        'category' => fn($v): string=> "desi='".$conn->real_escape_string($v)."'",
+        'status' => fn($v): string=> "status='".$conn->real_escape_string($v)."'",
+        'date_from' => fn($v): string=> "date>='".$conn->real_escape_string($v)."'",
+        'date_to' => fn($v): string=> "date<='".$conn->real_escape_string($v)."'"
     ];
     foreach ($mapping as $key => $func) {
         if (!empty($data[$key])) $sql .= " AND " . $func($data[$key]);

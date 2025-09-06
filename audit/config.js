@@ -19,13 +19,21 @@ function holdTransaction(btn) {
 
 // Filter by category
 function filterByCategory(section) {
-  const filter = document.getElementById(`categoryFilter${section}`).value;
-  const rows = document.querySelectorAll(`#transactionTable${section} tbody tr`);
+  const filterValue = document.getElementById(`categoryFilter${section}`).value;
+  const table = document.getElementById(`transactionTable${section}`);
+  const rows = table.querySelectorAll('tbody tr');
+
   rows.forEach(row => {
-    row.style.display = (filter === '' || row.cells[6].textContent === filter) ? '' : 'none';
+    const designation = row.cells[5]?.textContent.trim(); // Make sure 6 is correct
+    const shouldShow = !filterValue || designation === filterValue;
+    row.style.display = shouldShow ? '' : 'none';
   });
-  updateSummary(`transactionTable${section}`, `totalIncome${section}`, `totalExpense${section}`, `totalSavings${section}`, `totalOfficial${section}`);
+
+  // updateSummary(...); // optional
 }
+
+
+
 
 // Filter by status
 function filterByStatus(section) {

@@ -29,7 +29,7 @@
     <!-- Content -->
     <div class="content">
 
-      <!-- Dashboard Section  -->
+      <!-- Dashboard Section -->
       <div id="search" class="content-section active">
         <h1>Dashboard</h1>
 
@@ -42,10 +42,10 @@
           <label>Category:
             <select id="categoryFilterDashboard" onchange="filterByCategory('Dashboard')">
               <option value="">All</option>
-              <option value="Income">Income</option>
-              <option value="Expense">Expense</option>
-              <option value="Savings">Savings</option>
-              <option value="Official">Official</option>
+              <option value="Admin">Admin</option>
+              <option value="Manager">Manager</option>
+              <option value="Employee">Employee</option>
+              <option value="Auditor">Auditor</option>
             </select>
           </label>
 
@@ -57,12 +57,10 @@
             </select>
           </label>
         </div>
-        
+
         <label>
-            ID: <input type="text" id="idFilterDashboard" placeholder="Enter ID" onkeyup="filterByID('Dashboard')">
+          ID: <input type="text" id="idFilterDashboard" placeholder="Enter ID" onkeyup="filterByID('Dashboard')">
         </label>
-
-
 
         <!-- Summary -->
         <div id="summaryDashboard">
@@ -73,59 +71,59 @@
           <button onclick="downloadExcel('transactionTableDashboard')">Download Report</button>
         </div>
 
-        <!-- Transactions Table -->
+        <!-- Users Table -->
         <table id="transactionTableDashboard" class="table">
           <thead>
             <tr>
               <th>ID</th>
-              <th>Date</th>
-              <th>Time</th>
-              <th>F_NAME</th>
-              <th>L_NAME</th>
+              <th>First Name</th>
+              <th>Last Name</th>
               <th>Email</th>
-              <th>Category</th>
-              <th>Amount</th>
+              <th>Phone</th>
+              <th>Designation</th>
+              <th>Department</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>1</td>
-              <td>2025-09-06</td>
-              <td>10:00</td>
-              <td>Arif</td>
-              <td>Hasan</td>
-              <td>arif@example.com</td>
-              <td>Income</td>
-              <td>500</td>
-              <td>Approved</td>
-              <td><button onclick="holdTransaction(this)">Hold</button></td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td>2025-09-05</td>
-              <td>14:30</td>
-              <td>John</td>
-              <td>Doe</td>
-              <td>john@example.com</td>
-              <td>Expense</td>
-              <td>300</td>
-              <td>Approved</td>
-              <td><button onclick="holdTransaction(this)">Hold</button></td>
-            </tr>
-            <tr>
-              <td>3</td>
-              <td>2025-09-05</td>
-              <td>16:15</td>
-              <td>Jane</td>
-              <td>Smith</td>
-              <td>jane@example.com</td>
-              <td>Income</td>
-              <td>1200</td>
-              <td>Approved</td>
-              <td><button onclick="holdTransaction(this)">Hold</button></td>
-            </tr>
+            <?php
+            // Database connection
+            $host = 'localhost';
+            $db   = 'webtech';  // 🔁 Replace with your actual database name
+            $user = 'root';           // ✅ Default for XAMPP
+            $pass = '';               // ✅ Default password for root is empty
+
+            $conn = new mysqli($host, $user, $pass, $db);
+
+            if ($conn->connect_error) {
+                die("Connection failed: " . $conn->connect_error);
+            }
+
+            // Fetch user data
+            $sql = "SELECT id, fname, lname, email, phone, desi, dept, status FROM users";
+            $result = $conn->query($sql);
+
+            if ($result && $result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    echo "<tr>";
+                    echo "<td>" . htmlspecialchars($row["id"]) . "</td>";
+                    echo "<td>" . htmlspecialchars($row["fname"]) . "</td>";
+                    echo "<td>" . htmlspecialchars($row["lname"]) . "</td>";
+                    echo "<td>" . htmlspecialchars($row["email"]) . "</td>";
+                    echo "<td>" . htmlspecialchars($row["phone"]) . "</td>";
+                    echo "<td>" . htmlspecialchars($row["desi"]) . "</td>";
+                    echo "<td>" . htmlspecialchars($row["dept"]) . "</td>";
+                    echo "<td>" . htmlspecialchars($row["status"]) . "</td>";
+                    echo "<td><button onclick=\"holdTransaction(this)\">Hold</button></td>";
+                    echo "</tr>";
+                }
+            } else {
+                echo "<tr><td colspan='9'>No users found</td></tr>";
+            }
+
+            $conn->close();
+            ?>
           </tbody>
         </table>
       </div>
@@ -149,7 +147,6 @@
       </div>
 
     </div>
-
   </div>
 
   <!-- Ionicons -->

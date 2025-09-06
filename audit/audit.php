@@ -40,11 +40,11 @@
                 <ion-icon name="person-outline"></ion-icon> Account
             </a>
         </div>
-        <table class="table">
+<table class="table">
   <thead>
     <tr>
       <th>ID</th>
-      <th>F_Name</th>
+      <th>F_NAME</th>
       <th>L_NAME</th>
       <th>EMAIL</th>
       <th>PHONE</th>
@@ -88,6 +88,33 @@
       <td>cell5_4</td>
       <td>cell6_4</td>
       <td>cell7_4</td>
+    </tr>
+    <tr>
+      <td>cell1_5</td>
+      <td>cell2_5</td>
+      <td>cell3_5</td>
+      <td>cell4_5</td>
+      <td>cell5_5</td>
+      <td>cell6_5</td>
+      <td>cell7_5</td>
+    </tr>
+    <tr>
+      <td>cell1_6</td>
+      <td>cell2_6</td>
+      <td>cell3_6</td>
+      <td>cell4_6</td>
+      <td>cell5_6</td>
+      <td>cell6_6</td>
+      <td>cell7_6</td>
+    </tr>
+    <tr>
+      <td>cell1_7</td>
+      <td>cell2_7</td>
+      <td>cell3_7</td>
+      <td>cell4_7</td>
+      <td>cell5_7</td>
+      <td>cell6_7</td>
+      <td>cell7_7</td>
     </tr>
   </tbody>
   <tfoot>

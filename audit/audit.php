@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Auditor Dashboard</title>
   <link rel="stylesheet" href="audit.css">
-  <link rel="stylesheet" href="config.js">
+<script src="config.js"></script>
 </head>
 
 <body>

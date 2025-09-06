@@ -30,7 +30,7 @@
     <div class="content">
 
       <!-- Dashboard Section -->
-      <div id="dashboard" class="content-section active">
+      <div id="search" class="content-section active">
         <h1>Dashboard</h1>
 
         <!-- Filters -->

@@ -86,17 +86,23 @@ function filterByID(section) {
 function downloadExcel(tableId) {
   const table = document.getElementById(tableId);
   let csv = [];
+
   for (let row of table.rows) {
     let rowData = [];
-    for (let cell of row.cells) rowData.push(cell.innerText);
+    for (let i = 0; i < row.cells.length; i++) {
+      if (i === 9) continue; // skip column index 4 (Last Name)
+      rowData.push(row.cells[i].innerText);
+    }
     csv.push(rowData.join(","));
   }
+
   const blob = new Blob([csv.join("\n")], { type: "text/csv" });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = "audit_report.csv";
   link.click();
 }
+
 
 // Initial summary
 updateSummary('transactionTableDashboard', 'totalIncomeDashboard', 'totalExpenseDashboard', 'totalSavingsDashboard', 'totalOfficialDashboard');

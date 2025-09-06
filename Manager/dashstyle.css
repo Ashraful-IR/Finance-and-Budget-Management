@@ -1,3 +1,4 @@
+
 body {
   display: flex;
   justify-content: center;
@@ -8,43 +9,25 @@ body {
   background-repeat: no-repeat;
   background-attachment: fixed;
   background: #ffffff;
-}
-.main-content {
-    margin-left: 240px;
-    flex: 1;
-    display:flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    padding: 20px;
-    border-radius: 0px 0px 10px 10px;
-    transition: margin-left 0.3s ease;
-
+  padding-top: 200px; 
 }
 
-.container.menu-collapsed .main-content {
-    margin-left: 60px;
-}
-
-
-.menu.active {
-  transform: translateX(-100%);
-}
-
-.menu-header {
-  width: 100%;
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200x;
+  background-color: #1e293b;
+  color: #00bfa6;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 15px;
-  margin-bottom: 20px;
+  justify-content: center;
+  font-size: 1.8rem;
+  z-index: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-.menu-toggle {
-  font-size: 1.7rem;
-  color: #000000;
-  cursor: pointer;
-}
 
 .menu {
   width: 13%;
@@ -62,6 +45,23 @@ body {
   flex-direction: column;
   align-items: left;
   transition: width 0.3s ease;
+  z-index: 10; 
+  border-top-right-radius: 10px; 
+}
+
+.menu-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 15px;
+  margin-bottom: 20px;
+}
+
+.menu-toggle {
+  font-size: 1.7rem;
+  color: #000000;
+  cursor: pointer;
 }
 
 .menu h2 {
@@ -93,11 +93,11 @@ body {
   box-shadow: 0 4px 12px rgba(0, 191, 166, 0.2);
   border-radius: 10px;
 }
+
 .menu a ion-icon {
   vertical-align: middle;
   margin-right: 10px;
   font-size: 1.2rem;
-  color: linear-gradient(to bottom, #000000, #383a3d);
   transition: transform 0.3s ease;
 }
 
@@ -105,56 +105,20 @@ body {
   transform: translateX(3px);
   color: #ffffff;
 }
+
 .menu .menu-bottom {
   margin-top: auto;
   margin-bottom: 20px;
 }
 
-.content {
-  padding: 20px;
+.menu a span {
+  vertical-align: middle;
 }
 
-.section {
-  display: none;
+.menu a ion-icon {
+  font-size: 1.5rem;
 }
 
-.section.active {
-  display: block;
-}
-
-form input,
-form button {
-  margin: 5px 0;
-  padding: 8px;
-  width: 100%;
-  max-width: 300px;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-ul li {
-  margin: 8px 0;
-  padding: 8px;
-  background: #ecf0f1;
-  border-radius: 5px;
-}
-
-ul li button {
-  margin-left: 10px;
-  background: red;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 3px;
-  cursor: pointer;
-}
-.container.full-add .content {
-  width: calc(100% - 60px);
-  transition: width 0.3s ease;
-}
 .menu.collapsed {
   width: 60px !important;
 }
@@ -169,14 +133,6 @@ ul li button {
   display: none;
 }
 
-.menu a span {
-  vertical-align: middle;
-}
-
-.menu a ion-icon {
-  font-size: 1.5rem;
-}
-
 .menu.collapsed h2 {
   display: none;
 }
@@ -185,6 +141,37 @@ ul li button {
   display: block;
   margin-left: auto;
 }
+
+
+.main-content {
+  margin-left: 240px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 20px;
+  border-radius: 0px 0px 10px 10px;
+  transition: margin-left 0.3s ease;
+}
+
+.container.menu-collapsed .main-content {
+  margin-left: 60px;
+}
+
+
+.content {
+  padding: 20px;
+}
+
+.section {
+  display: none;
+}
+
+.section.active {
+  display: block;
+}
+
 #Add {
   display: flex;
   flex-direction: column;
@@ -217,4 +204,61 @@ ul li button {
 #Add button:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+
+form input,
+form button {
+  margin: 5px 0;
+  padding: 8px;
+  width: 100%;
+  max-width: 300px;
+}
+
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+ul li {
+  margin: 8px 0;
+  padding: 8px;
+  background: #ecf0f1;
+  border-radius: 5px;
+}
+
+ul li button {
+  margin-left: 10px;
+  background: red;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+
+.container.full-add .content {
+  width: calc(100% - 60px);
+  transition: width 0.3s ease;
+}
+
+
+@media (max-width: 768px) {
+  .menu {
+    width: 60px;
+  }
+
+  .main-content {
+    margin-left: 60px;
+  }
+
+  .menu a span {
+    display: none;
+  }
+
+  .menu h2 {
+    display: none;
+  }
 }

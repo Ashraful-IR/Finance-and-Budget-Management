@@ -1,67 +1,90 @@
+// Toggle sidebar
 function toggleMenu() {
-  const menu = document.querySelector('.menu');
-  menu.classList.toggle('active');
+  document.querySelector('.menu').classList.toggle('active');
 }
 
+// Show section
 function showSection(sectionId) {
-  document.querySelectorAll('.content-section').forEach(sec => {
-    sec.classList.remove('active');
-  });
+  document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
   document.getElementById(sectionId).classList.add('active');
 }
 
 // Hold suspicious transaction
 function holdTransaction(btn) {
   const row = btn.closest('tr');
-  row.style.backgroundColor = 'rgba(254, 17, 17, 1)';
-  row.cells[8].textContent = 'Held'; // Update status column
+  row.style.backgroundColor = 'rgba(254, 17, 17, 0.7)';
+  row.cells[8].textContent = 'Held';
+  updateSummary('transactionTableDashboard', 'totalIncomeDashboard', 'totalExpenseDashboard', 'totalSavingsDashboard', 'totalOfficialDashboard');
 }
 
 // Filter by category
-function filterByCategory() {
-  const filter = document.getElementById('categoryFilter').value;
-  const rows = document.querySelectorAll('#transactionTable tbody tr');
+function filterByCategory(section) {
+  const filter = document.getElementById(`categoryFilter${section}`).value;
+  const rows = document.querySelectorAll(`#transactionTable${section} tbody tr`);
   rows.forEach(row => {
-    const category = row.cells[6].textContent;
-    row.style.display = (filter === '' || category === filter) ? '' : 'none';
+    row.style.display = (filter === '' || row.cells[6].textContent === filter) ? '' : 'none';
   });
-  updateSummary();
+  updateSummary(`transactionTable${section}`, `totalIncome${section}`, `totalExpense${section}`, `totalSavings${section}`, `totalOfficial${section}`);
+}
+
+// Filter by status
+function filterByStatus(section) {
+  const filter = document.getElementById(`statusFilter${section}`).value;
+  const rows = document.querySelectorAll(`#transactionTable${section} tbody tr`);
+  rows.forEach(row => {
+    row.style.display = (filter === '' || row.cells[8].textContent === filter) ? '' : 'none';
+  });
+  updateSummary(`transactionTable${section}`, `totalIncome${section}`, `totalExpense${section}`, `totalSavings${section}`, `totalOfficial${section}`);
 }
 
 // Filter by date
-function filterByDate() {
-  const from = new Date(document.getElementById('dateFrom').value);
-  const to = new Date(document.getElementById('dateTo').value);
-  const rows = document.querySelectorAll('#transactionTable tbody tr');
+function filterByDate(section) {
+  const from = document.getElementById(`dateFrom${section}`).value;
+  const to = document.getElementById(`dateTo${section}`).value;
+  const rows = document.querySelectorAll(`#transactionTable${section} tbody tr`);
   rows.forEach(row => {
     const date = new Date(row.cells[1].textContent);
-    row.style.display = (!from && !to) || (date >= from && date <= to) ? '' : 'none';
+    const show = (!from || date >= new Date(from)) && (!to || date <= new Date(to));
+    row.style.display = show ? '' : 'none';
   });
-  updateSummary();
+  updateSummary(`transactionTable${section}`, `totalIncome${section}`, `totalExpense${section}`, `totalSavings${section}`, `totalOfficial${section}`);
 }
 
 // Update summary totals
-function updateSummary() {
-  const rows = document.querySelectorAll('#transactionTable tbody tr');
-  let income = 0, expense = 0;
+function updateSummary(tableId, incomeId, expenseId, savingsId, officialId) {
+  const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+  let income = 0, expense = 0, savings = 0, official = 0;
+
   rows.forEach(row => {
     if (row.style.display !== 'none') {
       const amount = parseFloat(row.cells[7].textContent);
       const category = row.cells[6].textContent;
       if (category === 'Income') income += amount;
       if (category === 'Expense') expense += amount;
+      if (category === 'Savings') savings += amount;
+      if (category === 'Official') official += amount;
     }
   });
-  document.getElementById('totalIncome').textContent = income;
-  document.getElementById('totalExpense').textContent = expense;
+
+  document.getElementById(incomeId).textContent = income;
+  document.getElementById(expenseId).textContent = expense;
+  document.getElementById(savingsId).textContent = savings;
+  document.getElementById(officialId).textContent = official;
+}
+function filterByID(section) {
+  const filter = document.getElementById(`idFilter${section}`).value.trim();
+  const rows = document.querySelectorAll(`#transactionTable${section} tbody tr`);
+  rows.forEach(row => {
+    row.style.display = (filter === '' || row.cells[0].textContent === filter) ? '' : 'none';
+  });
+  updateSummary(`transactionTable${section}`, `totalIncome${section}`, `totalExpense${section}`, `totalSavings${section}`, `totalOfficial${section}`);
 }
 
-// Initial summary
-updateSummary();
 
-// Download CSV/Excel
-function downloadExcel() {
-  const table = document.getElementById('transactionTable');
+
+// Download CSV
+function downloadExcel(tableId) {
+  const table = document.getElementById(tableId);
   let csv = [];
   for (let row of table.rows) {
     let rowData = [];
@@ -74,3 +97,6 @@ function downloadExcel() {
   link.download = "audit_report.csv";
   link.click();
 }
+
+// Initial summary
+updateSummary('transactionTableDashboard', 'totalIncomeDashboard', 'totalExpenseDashboard', 'totalSavingsDashboard', 'totalOfficialDashboard');

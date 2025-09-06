@@ -23,7 +23,7 @@
       <a href="#" onclick="showSection('dashboard')">
         <ion-icon name="home-outline"></ion-icon> Dashboard
       </a>
-      <a href="#" onclick="showSection('Add')">
+      <a href="#" onclick="showSection('Search')">
         <ion-icon name="search-outline"></ion-icon> Search
       </a>
       <a href="#" onclick="showSection('Authorize')">
@@ -35,7 +35,7 @@
       <a href="#" onclick="showSection('Generate_reports')">
         <ion-icon name="document-text-outline"></ion-icon> Reports review
       </a>
-      <a href="#">
+      <a href="#" onclick="showSection('Accounts')">
         <ion-icon name="person-outline"></ion-icon> Accounts
       </a>
     </div>
@@ -127,10 +127,11 @@
       </div>
 
       <!-- Other Sections -->
-      <div id="search" class="content-section">search Section</div>
+      <div id="Search" class="content-section">Search Section</div>
       <div id="Authorize" class="content-section">Authorize Section</div>
       <div id="Balance" class="content-section">Balance Section</div>
       <div id="Generate_reports" class="content-section">Reports Section</div>
+      <div id="Accounts" class="content-section">Accounts</div>
 
     </div>
 

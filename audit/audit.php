@@ -29,7 +29,7 @@
     <!-- Content -->
     <div class="content">
 
-      <!-- Dashboard Section -->
+      <!-- Dashboard Section  -->
       <div id="search" class="content-section active">
         <h1>Dashboard</h1>
 

@@ -13,7 +13,7 @@ function showSection(sectionId) {
 // Hold suspicious transaction
 function holdTransaction(btn) {
   const row = btn.closest('tr');
-  row.style.backgroundColor = '#fdd';
+  row.style.backgroundColor = 'rgba(254, 17, 17, 1)';
   row.cells[8].textContent = 'Held'; // Update status column
 }
 

@@ -120,4 +120,20 @@ h1 {
   color: #cc1d1d;
 }
 
+table {
+  width: 90%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  box-shadow: 0 4px 12px rgba(0, 191, 166, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
+  background-color:azure;
+}
+
+table td, table th {
+  border: 1px solid #181616;
+  padding: 12px 15px;
+  text-align: left;
+  color: #000000;
+}
 

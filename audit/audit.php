@@ -40,7 +40,7 @@
                 <ion-icon name="person-outline"></ion-icon> Account
             </a>
         </div>
-        <table class="greenTable">
+        <table class="table">
   <thead>
     <tr>
       <th>ID</th>

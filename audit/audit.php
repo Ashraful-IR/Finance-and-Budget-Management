@@ -2,153 +2,145 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Auditor</title>
-    <link rel="stylesheet" href="../Audit/audit.css" type="">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auditor Dashboard</title>
+  <link rel="stylesheet" href="audit.css">
+  <link rel="stylesheet" href="config.js">
 </head>
 
 <body>
-    <div class="container">
+  <div class="container">
 
-        <div class="menu">
-            <div class="menu-header">
-                <h2>Auditor</h2>
-                <div class="menu-toggle" onclick="toggleMenu()">
-                    <ion-icon name="menu-outline"></ion-icon>
-                </div>
-            </div>
-            <a href="#" onclick="showSection('dashboard')">
-                <ion-icon name="home-outline"></ion-icon> Dashboard
-            </a>
-            <a href="#" onclick="showSection('Add')">
-                <ion-icon name="add-circle-outline"></ion-icon> Add
-            </a>
-            <a href="#" onclick="showSection('Authorize')">
-                <ion-icon name="checkmark-done-outline"></ion-icon> Authorize
-            </a>
-            <a href="#" onclick="showSection('Balance')">
-                <ion-icon name="wallet-outline"></ion-icon> Balance
-            </a>
-            <a href="#" onclick="showSection('Transactions')">
-                <ion-icon name="list-outline"></ion-icon> Transactions
-            </a>
-            <a href="#" onclick="showSection('Generate_reports')">
-                <ion-icon name="document-text-outline"></ion-icon> Reports
-            </a>
-            <a href="#">
-                <ion-icon name="person-outline"></ion-icon> Account
-            </a>
+    <!-- Sidebar -->
+    <div class="menu">
+      <div class="menu-header">
+        <h2>Auditor</h2>
+        <div class="menu-toggle" onclick="toggleMenu()">
+          <ion-icon name="menu-outline"></ion-icon>
         </div>
-<table class="table">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>F_NAME</th>
-      <th>L_NAME</th>
-      <th>EMAIL</th>
-      <th>PHONE</th>
-      <th>DEPT</th>
-      <th>STATUS</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>cell1_1</td>
-      <td>cell2_1</td>
-      <td>cell3_1</td>
-      <td>cell4_1</td>
-      <td>cell5_1</td>
-      <td>cell6_1</td>
-      <td>cell7_1</td>
-    </tr>
-    <tr>
-      <td>cell1_2</td>
-      <td>cell2_2</td>
-      <td>cell3_2</td>
-      <td>cell4_2</td>
-      <td>cell5_2</td>
-      <td>cell6_2</td>
-      <td>cell7_2</td>
-    </tr>
-    <tr>
-      <td>cell1_3</td>
-      <td>cell2_3</td>
-      <td>cell3_3</td>
-      <td>cell4_3</td>
-      <td>cell5_3</td>
-      <td>cell6_3</td>
-      <td>cell7_3</td>
-    </tr>
-    <tr>
-      <td>cell1_4</td>
-      <td>cell2_4</td>
-      <td>cell3_4</td>
-      <td>cell4_4</td>
-      <td>cell5_4</td>
-      <td>cell6_4</td>
-      <td>cell7_4</td>
-    </tr>
-    <tr>
-      <td>cell1_5</td>
-      <td>cell2_5</td>
-      <td>cell3_5</td>
-      <td>cell4_5</td>
-      <td>cell5_5</td>
-      <td>cell6_5</td>
-      <td>cell7_5</td>
-    </tr>
-    <tr>
-      <td>cell1_6</td>
-      <td>cell2_6</td>
-      <td>cell3_6</td>
-      <td>cell4_6</td>
-      <td>cell5_6</td>
-      <td>cell6_6</td>
-      <td>cell7_6</td>
-    </tr>
-    <tr>
-      <td>cell1_7</td>
-      <td>cell2_7</td>
-      <td>cell3_7</td>
-      <td>cell4_7</td>
-      <td>cell5_7</td>
-      <td>cell6_7</td>
-      <td>cell7_7</td>
-    </tr>
-  </tbody>
-  <tfoot>
-    <tr>
-      <td colspan="7">
-        <div class="links"><a href="#">&laquo;</a> <a class="active" href="#">1</a> <a href="#">2</a> <a href="#">3</a> <a href="#">4</a> <a href="#">&raquo;</a></div>
-      </td>
-    </tr>
-  </tfoot>
-</table>
-        
-
-    </div>
-    
-    <div class="content"> 
-        <h1>Welcome to the Auditor Dashboard</h1>
-        <p>Select an option from the menu to get started.</p>
+      </div>
+      <a href="#" onclick="showSection('dashboard')">
+        <ion-icon name="home-outline"></ion-icon> Dashboard
+      </a>
+      <a href="#" onclick="showSection('Add')">
+        <ion-icon name="search-outline"></ion-icon> Search
+      </a>
+      <a href="#" onclick="showSection('Authorize')">
+        <ion-icon name="checkmark-done-outline"></ion-icon> Authorize
+      </a>
+      <a href="#" onclick="showSection('Balance')">
+        <ion-icon name="wallet-outline"></ion-icon> Balance
+      </a>
+      <a href="#" onclick="showSection('Generate_reports')">
+        <ion-icon name="document-text-outline"></ion-icon> Reports review
+      </a>
+      <a href="#">
+        <ion-icon name="person-outline"></ion-icon> Accounts
+      </a>
     </div>
 
+    <!-- Content -->
+    <div class="content">
 
-    
+      <!-- Dashboard -->
+      <div id="dashboard" class="content-section active">
+        <h1>Auditor Dashboard</h1>
 
+        <!-- Filters -->
+        <div class="filters">
+          <label>Date From: <input type="date" id="dateFrom"></label>
+          <label>Date To: <input type="date" id="dateTo"></label>
+          <button onclick="filterByDate()">Search by Date</button>
 
+          <label>Category:
+            <select id="categoryFilter" onchange="filterByCategory()">
+              <option value="">All</option>
+              <option value="Income">Income</option>
+              <option value="Expense">Expense</option>
+            </select>
+          </label>
+        </div>
 
+        <!-- Summary -->
+        <div id="summary">
+          <p>Total Income: $<span id="totalIncome">0</span></p>
+          <p>Total Expenses: $<span id="totalExpense">0</span></p>
+          <button onclick="downloadExcel()">Download Report</button>
+        </div>
 
-    <script>
-    function toggleMenu() {
-        const menu = document.querySelector('.menu');
-        menu.classList.toggle('active');
-    }
-    </script>
+        <!-- Transactions Table -->
+        <table id="transactionTable" class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>F_NAME</th>
+              <th>L_NAME</th>
+              <th>Email</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>2025-09-06</td>
+              <td>10:00</td>
+              <td>Arif</td>
+              <td>Hasan</td>
+              <td>arif@example.com</td>
+              <td>Income</td>
+              <td>500</td>
+              <td>Approved</td>
+              <td><button onclick="holdTransaction(this)">Hold</button></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>2025-09-05</td>
+              <td>14:30</td>
+              <td>John</td>
+              <td>Doe</td>
+              <td>john@example.com</td>
+              <td>Expense</td>
+              <td>300</td>
+              <td>Approved</td>
+              <td><button onclick="holdTransaction(this)">Hold</button></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>2025-09-05</td>
+              <td>16:15</td>
+              <td>Jane</td>
+              <td>Smith</td>
+              <td>jane@example.com</td>
+              <td>Income</td>
+              <td>1200</td>
+              <td>Approved</td>
+              <td><button onclick="holdTransaction(this)">Hold</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+      <!-- Other Sections -->
+      <div id="search" class="content-section">search Section</div>
+      <div id="Authorize" class="content-section">Authorize Section</div>
+      <div id="Balance" class="content-section">Balance Section</div>
+      <div id="Generate_reports" class="content-section">Reports Section</div>
+
+    </div>
+
+  </div>
+
+  <!-- JS -->
+  <script src="audit.js"></script>
+
+  <!-- Ionicons -->
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </body>
-
 </html>

@@ -1,7 +1,7 @@
 body {
   font-family: Arial, sans-serif;
   margin: 0;
-   background: linear-gradient(to bottom, #c0bebe, #cacccf);
+  background: linear-gradient(to bottom, #c0bebe, #cacccf);
 }
 
 .container {
@@ -93,3 +93,4 @@ button:hover {
 .filters label {
   margin-right: 15px;
 }
+

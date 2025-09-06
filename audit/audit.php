@@ -17,7 +17,7 @@
       <div class="menu-header">
         <h2>Auditor</h2>
         <div class="menu-toggle" onclick="toggleMenu()">
-          <ion-icon name="menu-outline"></ion-icon>
+          <ion-icon name="ellipsis-vertical-outline"></ion-icon>
         </div>
       </div>
       <a href="#" onclick="showSection('dashboard')">

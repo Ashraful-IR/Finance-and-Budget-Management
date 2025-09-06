@@ -7,6 +7,8 @@
     <title>Dashboard | Manager</title>
     <link rel="stylesheet" href="../Manager/dashstyle.css" type="text/css">
     <script src="../Manager/dashjs.js"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </head>
 
 <body>
@@ -42,7 +44,11 @@
         <a href="#" onclick="logout()" class="menu-bottom">
             <ion-icon name="log-out-outline"></ion-icon> <span>Log Out</span>
         </a>
+    </div>
 
+  
+    <div class="topbar">
+        <h1>Manager Dashboard</h1>
     </div>
     <div class="main-content">
         <div class="content">
@@ -51,7 +57,6 @@
             </div>
 
             <div id="Add" class="section">
-
                 <div id="addButtons" style="display: none;">
                     <h1>Welcome!</h1>
                     <button type="button" onclick="showAddForm()">Add Expense</button>
@@ -59,20 +64,22 @@
                 </div>
             </div>
 
-
             <div id="Authorize" class="section">
                 <h1>Pending Authorizations</h1>
                 <ul id="authorizationList"></ul>
             </div>
+
             <div id="Balance" class="section">
                 <h1>Current Balance</h1>
                 <p id="balanceAmount">$0.00</p>
                 <button type="button" onclick="refreshBalance()">Refresh Balance</button>
             </div>
+
             <div id="Transactions" class="section">
                 <h1>Transaction History</h1>
                 <ul id="transactionList"></ul>
             </div>
+
             <div id="Generate_reports" class="section">
                 <h1>Generate Reports</h1>
                 <button type="button" onclick="generateReport()">Generate Report</button>
@@ -80,8 +87,6 @@
             </div>
         </div>
     </div>
-    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
-</body>
 
+</body>
 </html>

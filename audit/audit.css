@@ -114,5 +114,10 @@ body {
   transform: translateX(3px);
   color: #ffffff;
 }
+h1 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+  color: #cc1d1d;
+}
 
 

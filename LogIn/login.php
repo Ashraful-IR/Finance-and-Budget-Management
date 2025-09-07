@@ -33,8 +33,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 } elseif ($role === "manager") {
                     header("Location: ../Manager/dash.php");
                     exit();
-                }elseif ($role === "Employee") {
-                    header("Location: ../Employee/employee-dashboard.php");
+                }elseif ($role === "employee") {
+                    header("Location: ../Employee/Employee-dashboard.php");
                     exit();
                 }
                 

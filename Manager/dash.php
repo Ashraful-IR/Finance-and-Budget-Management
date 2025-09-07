@@ -57,11 +57,7 @@
             </div>
 
             <div id="Add" class="section">
-                <div id="addButtons" style="display: none;">
-                    <h1>Welcome!</h1>
-                    <button type="button" onclick="showAddForm()">Add Expense</button>
-                    <button type="button" onclick="showDeleteTable()">Delete Expense</button>
-                </div>
+                
             </div>
 
             <div id="Authorize" class="section">

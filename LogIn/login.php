@@ -33,7 +33,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 } elseif ($role === "manager") {
                     header("Location: ../Manager/dash.php");
                     exit();
-                } else {
+                }elseif ($role === "Employee") {
+                    header("Location: ../Employee/employee-dashboard.php");
+                    exit();
+                }
+                
+                else {
                     $error = "Access allowed only for Admin,Manager,Employee and Auditor";
                 }
             }

@@ -1,13 +1,5 @@
 <?php
-// -----------------------------------------------------------------------------
-// employee-dashboard.php
-// Single-file SPA (HTML+JS) + JSON API endpoints for expenses & account
-// Uses configdb.php and DB 'fnb'. No mysqli::get_result() used.
-// -----------------------------------------------------------------------------
-
 session_start();
-
-// Fallback session if you don't have login integrated yet
 if (!isset($_SESSION['employee_id'])) {
   $_SESSION['employee_id'] = 1;
 }
@@ -18,7 +10,6 @@ if (!isset($_SESSION['dept_id'])) {
 $employee_id = (int)$_SESSION['employee_id'];
 $dept_id     = (int)$_SESSION['dept_id'];
 
-// ----------------------------- Helpers ---------------------------------------
 function json_out($data, int $code = 200){
   http_response_code($code);
   header('Content-Type: application/json; charset=utf-8');
@@ -29,24 +20,18 @@ function json_out($data, int $code = 200){
 
 function s($v){ return isset($v) ? trim((string)$v) : null; }
 
-/**
- * Bind params dynamically (no get_result). Ensures pass-by-reference.
- * @param mysqli_stmt $stmt
- * @param string $types
- * @param array $params
- */
 function bind_params_dynamic(mysqli_stmt $stmt, string $types, array $params): void {
   $refs = [];
-  foreach ($params as $k => &$v) { $refs[$k] = &$v; } // make references
+  foreach ($params as $k => &$v) { $refs[$k] = &$v; } 
   $stmt->bind_param($types, ...$refs);
 }
 
-// ------------------------------- API -----------------------------------------
+
 if (isset($_GET['action'])) {
-  require_once __DIR__ . '/configdb.php'; // only open DB for API calls
+  include "configdb.php"; 
   $a = $_GET['action'];
 
-  // ---------- Expenses: list (with search, status filter, paging) ------------
+  
   if ($a === 'list') {
     $q      = s($_GET['q'] ?? '');
     $status = s($_GET['status'] ?? '');
@@ -297,7 +282,7 @@ if (isset($_GET['action'])) {
     $_SESSION = [];
     if (session_id() !== '') session_destroy();
     // Redirecting to a (placeholder) page; adjust if you have a login screen
-    header("Location: employee-dashboard.php"); // or login.html
+    header("Location: ../Login/login.php"); // or login.html
     exit;
   }
 

@@ -57,7 +57,7 @@
             </div>
 
             <div id="Add" class="section">
-                
+                Hi
             </div>
 
             <div id="Authorize" class="section">

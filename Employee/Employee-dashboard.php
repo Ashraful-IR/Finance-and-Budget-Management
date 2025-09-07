@@ -26,12 +26,10 @@ function bind_params_dynamic(mysqli_stmt $stmt, string $types, array $params): v
   $stmt->bind_param($types, ...$refs);
 }
 
-
 if (isset($_GET['action'])) {
   include "configdb.php"; 
   $a = $_GET['action'];
 
-  
   if ($a === 'list') {
     $q      = s($_GET['q'] ?? '');
     $status = s($_GET['status'] ?? '');
@@ -89,7 +87,6 @@ if (isset($_GET['action'])) {
     json_out(['ok'=>true, 'data'=>$rows, 'page'=>$page, 'limit'=>$limit]);
   }
 
-  // -------------------------- Expenses: add (POST) ----------------------------
   if ($a === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $eid      = (int)($_POST['employee_id'] ?? $employee_id);
     $did      = (int)($_POST['dept_id'] ?? $dept_id);
@@ -119,7 +116,6 @@ if (isset($_GET['action'])) {
     json_out(['ok'=>$ok, 'id'=>$id, 'expense_code'=>$expense_code, 'error'=>$err]);
   }
 
-  // ------------------------ Expenses: update (POST) ---------------------------
   if ($a === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $code = s($_POST['expense_code'] ?? null);
     if (!$code) json_out(['ok'=>false, 'error'=>'expense_code required'], 422);
@@ -148,7 +144,6 @@ if (isset($_GET['action'])) {
     json_out(['ok'=>$ok, 'affected'=>$affected, 'error'=>$err]);
   }
 
-  // ------------------------ Expenses: delete (POST) ---------------------------
   if ($a === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $code = s($_POST['expense_code'] ?? null);
     if (!$code) json_out(['ok'=>false, 'error'=>'expense_code required'], 422);
@@ -164,9 +159,7 @@ if (isset($_GET['action'])) {
     json_out(['ok'=>$ok, 'affected'=>$affected, 'error'=>$err]);
   }
 
-  // ------------------------------- Stats -------------------------------------
   if ($a === 'stats') {
-    // Pending count
     $stmt = $conn->prepare("SELECT COUNT(*) FROM expenses WHERE employee_id=? AND status='Pending'");
     $stmt->bind_param("i", $employee_id);
     $stmt->execute();
@@ -174,7 +167,6 @@ if (isset($_GET['action'])) {
     $stmt->fetch();
     $stmt->close();
 
-    // Department totals
     $dept = ['total_income'=>0.0, 'total_expenses'=>0.0, 'net_balance'=>0.0];
     $stmt = $conn->prepare("SELECT total_income, total_expenses FROM departments WHERE id=? LIMIT 1");
     $stmt->bind_param("i", $dept_id);
@@ -187,7 +179,6 @@ if (isset($_GET['action'])) {
     }
     $stmt->close();
 
-    // Latest salary
     $salary = ['annual_base'=>0.0, 'monthly_net'=>0.0, 'last_paid'=>null];
     $stmt = $conn->prepare("SELECT annual_base, monthly_net, last_paid
                             FROM salaries WHERE employee_id=? ORDER BY id DESC LIMIT 1");
@@ -202,7 +193,6 @@ if (isset($_GET['action'])) {
     json_out(['ok'=>true, 'pending'=>$pending, 'department'=>$dept, 'salary'=>$salary]);
   }
 
-  // ----------------------------- Spending summary -----------------------------
   if ($a === 'summary') {
     $stmt = $conn->prepare("SELECT category, SUM(amount) AS total_amount
                             FROM expenses
@@ -225,7 +215,6 @@ if (isset($_GET['action'])) {
     json_out(['ok'=>true, 'total'=>$grand, 'rows'=>$rows]);
   }
 
-  // --------------------------- Account: get/update ----------------------------
   if ($a === 'get_account') {
     $stmt = $conn->prepare("SELECT name, email FROM employees WHERE id=? LIMIT 1");
     $stmt->bind_param("i", $employee_id);
@@ -260,9 +249,7 @@ if (isset($_GET['action'])) {
     json_out(['ok'=>$ok, 'affected'=>$affected, 'error'=>$err]);
   }
 
-  // -------------------------------- Forecast ----------------------------------
   if ($a === 'forecast') {
-    // Sum of last 30 days approved+pending (choose what you prefer; here we use all)
     $stmt = $conn->prepare("SELECT COALESCE(SUM(amount),0)
                             FROM expenses
                             WHERE employee_id=? AND date >= (CURRENT_DATE - INTERVAL 30 DAY)");
@@ -277,19 +264,15 @@ if (isset($_GET['action'])) {
     json_out(['ok'=>true, 'avg_daily'=>round($avgDaily,2), 'projected_next_month'=>$proj]);
   }
 
-  // -------------------------------- Logout ------------------------------------
   if ($a === 'logout') {
     $_SESSION = [];
     if (session_id() !== '') session_destroy();
-    // Redirecting to a (placeholder) page; adjust if you have a login screen
-    header("Location: ../Login/login.php"); // or login.html
+    header("Location: ../Login/login.php");
     exit;
   }
 
   json_out(['ok'=>false, 'error'=>'Unknown action'], 404);
 }
-
-// ------------------------------ HTML (SPA) -----------------------------------
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -327,7 +310,6 @@ if (isset($_GET['action'])) {
         </div>
       </header>
 
-      <!-- Submit Expense -->
       <section id="submit-request" class="panel is-visible">
         <div class="card">
           <h2>Submit a New Expense</h2>
@@ -380,7 +362,6 @@ if (isset($_GET['action'])) {
         </div>
       </section>
 
-      <!-- Forecasting -->
       <section id="forecasting" class="panel">
         <div class="card">
           <h2>Expense Forecasting Tool</h2>
@@ -392,7 +373,6 @@ if (isset($_GET['action'])) {
         </div>
       </section>
 
-      <!-- Request Status -->
       <section id="request-status" class="panel">
         <div class="card">
           <h2>My Expense Requests</h2>
@@ -415,7 +395,6 @@ if (isset($_GET['action'])) {
         </div>
       </section>
 
-      <!-- Salary -->
       <section id="salary-record" class="panel">
         <div class="card">
           <h2>Salary Record</h2>
@@ -427,7 +406,6 @@ if (isset($_GET['action'])) {
         </div>
       </section>
 
-      <!-- Department Balance -->
       <section id="dept-balance" class="panel">
         <div class="card">
           <h2>Department Balance</h2>
@@ -439,7 +417,6 @@ if (isset($_GET['action'])) {
         </div>
       </section>
 
-      <!-- Spending Summary -->
       <section id="spending-summary" class="panel">
         <div class="card">
           <h2>Personal Spending Summary</h2>
@@ -452,7 +429,6 @@ if (isset($_GET['action'])) {
         </div>
       </section>
 
-      <!-- Account -->
       <section id="account-management" class="panel">
         <div class="card">
           <h2>Account Management</h2>
@@ -476,13 +452,12 @@ if (isset($_GET['action'])) {
       const res = await fetch(url, { credentials: 'same-origin', ...options });
       const text = await res.text();
       try { return JSON.parse(text); }
-      catch { throw new Error('Invalid JSON from server:\\n' + text); }
+      catch { throw new Error('Invalid JSON from server:\n' + text); }
     }
 
     const $  = sel => document.querySelector(sel);
     const $$ = sel => Array.from(document.querySelectorAll(sel));
 
-    // Navigation
     $$('.nav-item').forEach(btn => {
       btn.addEventListener('click', () => {
         if (btn.id === 'logout-btn') { window.location.href = API + '?action=logout'; return; }
@@ -502,7 +477,6 @@ if (isset($_GET['action'])) {
       });
     });
 
-    // Submit expense
     $('#expense-form').addEventListener('submit', async e => {
       e.preventDefault();
       const fd = new FormData(e.target);
@@ -517,7 +491,6 @@ if (isset($_GET['action'])) {
       } catch (err) { alert('Submit failed: ' + err.message); }
     });
 
-    // List expenses
     async function loadExpenses(){
       const q = ($('#search-input')||{}).value?.trim?.() || '';
       const status = ($('#status-filter')||{}).value || '';
@@ -541,7 +514,6 @@ if (isset($_GET['action'])) {
       }
     }
 
-    // Cards & stats
     async function loadStats(){
       try {
         const j = await fetchJSON(API+'?action=stats');
@@ -557,7 +529,6 @@ if (isset($_GET['action'])) {
       } catch {}
     }
 
-    // Summary table
     async function loadSummary(){
       const tbody = $('#summary-tbody');
       if (!tbody) return;
@@ -579,7 +550,6 @@ if (isset($_GET['action'])) {
       }
     }
 
-    // Account profile
     async function loadAccount(){
       try {
         const j = await fetchJSON(API+'?action=get_account');
@@ -590,7 +560,6 @@ if (isset($_GET['action'])) {
       } catch {}
     }
 
-    // Forecasting
     async function loadForecast(){
       try {
         const j = await fetchJSON(API+'?action=forecast');
@@ -599,7 +568,6 @@ if (isset($_GET['action'])) {
       } catch {}
     }
 
-    // Init
     (function init(){
       if ($('#exp-date')) $('#exp-date').value = new Date().toISOString().slice(0,10);
       loadStats(); loadExpenses(); loadSummary();

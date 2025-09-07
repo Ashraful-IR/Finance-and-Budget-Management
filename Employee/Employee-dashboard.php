@@ -1,300 +1,310 @@
 <?php
 // -----------------------------------------------------------------------------
 // employee-dashboard.php
-// Single-file SPA + JSON API for Expenses, Accounts, Stats, Summary, Forecast
-// Works with configdb.php and fnb schema
+// Single-file SPA (HTML+JS) + JSON API endpoints for expenses & account
+// Uses configdb.php and DB 'fnb'. No mysqli::get_result() used.
 // -----------------------------------------------------------------------------
 
 session_start();
-include "configdb.php";
 
-/* -------------------------------------------------------------------------- */
-/*  Config & Helpers                                                          */
-/* -------------------------------------------------------------------------- */
-
-// fallback to demo session if login system not set up
-$employee_id = isset($_SESSION['employee_id']) ? (int)$_SESSION['employee_id'] : 1;
-$dept_id     = 1;
-
-// JSON output helper
-function json_out($data, int $code = 200) {
-    http_response_code($code);
-    header('Content-Type: application/json; charset=utf-8');
-    header('Cache-Control: no-store, max-age=0');
-    echo json_encode($data, JSON_UNESCAPED_UNICODE);
-    exit;
+// Fallback session if you don't have login integrated yet
+if (!isset($_SESSION['employee_id'])) {
+  $_SESSION['employee_id'] = 1;
+}
+if (!isset($_SESSION['dept_id'])) {
+  $_SESSION['dept_id'] = 1;
 }
 
-// safe string
-function s($v) { return isset($v) ? trim((string)$v) : null; }
+$employee_id = (int)$_SESSION['employee_id'];
+$dept_id     = (int)$_SESSION['dept_id'];
 
-/* -------------------------------------------------------------------------- */
-/*  API Endpoints                                                             */
-/* -------------------------------------------------------------------------- */
+// ----------------------------- Helpers ---------------------------------------
+function json_out($data, int $code = 200){
+  http_response_code($code);
+  header('Content-Type: application/json; charset=utf-8');
+  header('Cache-Control: no-store, max-age=0');
+  echo json_encode($data, JSON_UNESCAPED_UNICODE);
+  exit;
+}
+
+function s($v){ return isset($v) ? trim((string)$v) : null; }
+
+/**
+ * Bind params dynamically (no get_result). Ensures pass-by-reference.
+ * @param mysqli_stmt $stmt
+ * @param string $types
+ * @param array $params
+ */
+function bind_params_dynamic(mysqli_stmt $stmt, string $types, array $params): void {
+  $refs = [];
+  foreach ($params as $k => &$v) { $refs[$k] = &$v; } // make references
+  $stmt->bind_param($types, ...$refs);
+}
+
+// ------------------------------- API -----------------------------------------
 if (isset($_GET['action'])) {
-    $a = $_GET['action'];
+  require_once __DIR__ . '/configdb.php'; // only open DB for API calls
+  $a = $_GET['action'];
 
-    /* ----------------------------- Expenses: list ---------------------------- */
-    if ($a === 'list') {
-        $q      = s($_GET['q'] ?? '');
-        $status = s($_GET['status'] ?? '');
-        $page   = max(1, (int)($_GET['page'] ?? 1));
-        $limit  = max(1, min(100, (int)($_GET['limit'] ?? 50)));
-        $offset = ($page - 1) * $limit;
+  // ---------- Expenses: list (with search, status filter, paging) ------------
+  if ($a === 'list') {
+    $q      = s($_GET['q'] ?? '');
+    $status = s($_GET['status'] ?? '');
+    $page   = max(1, (int)($_GET['page'] ?? 1));
+    $limit  = max(1, min(200, (int)($_GET['limit'] ?? 50)));
+    $offset = ($page - 1) * $limit;
 
-        $sql = "SELECT expense_code, date, amount, category, reason, status
-                FROM expenses
-                WHERE employee_id=?";
-        $types  = "i";
-        $params = [$employee_id];
+    $sql    = "SELECT expense_code, date, amount, category, reason, status
+               FROM expenses
+               WHERE employee_id=?";
+    $types  = "i";
+    $params = [$employee_id];
 
-        if ($q !== '') {
-            $sql .= " AND (
-                expense_code LIKE CONCAT('%', ?, '%')
-                OR reason LIKE CONCAT('%', ?, '%')
-                OR category LIKE CONCAT('%', ?, '%')
-                OR status LIKE CONCAT('%', ?, '%')
-                OR CAST(amount AS CHAR) LIKE CONCAT('%', ?, '%')
-                OR DATE_FORMAT(date, '%Y-%m-%d') LIKE CONCAT('%', ?, '%')
-            )";
-            $types  .= "ssssss";
-            array_push($params, $q, $q, $q, $q, $q, $q);
-        }
-        if ($status !== '') {
-            $sql   .= " AND status = ?";
-            $types .= "s";
-            $params[] = $status;
-        }
-
-        $sql .= " ORDER BY date DESC, id DESC LIMIT ? OFFSET ?";
-        $types  .= "ii";
-        array_push($params, $limit, $offset);
-
-        $stmt = $conn->prepare($sql);
-        if (!$stmt) json_out(['ok'=>false,'error'=>$conn->error],500);
-        $stmt->bind_param($types, ...$params);
-        $stmt->execute();
-        $stmt->bind_result($expense_code, $date, $amount, $category, $reason, $row_status);
-
-        $rows = [];
-        while ($stmt->fetch()) {
-            $rows[] = [
-                'expense_code' => $expense_code,
-                'date'         => $date,
-                'amount'       => (float)$amount,
-                'category'     => $category,
-                'reason'       => $reason,
-                'status'       => $row_status
-            ];
-        }
-        $stmt->close();
-
-        json_out(['ok'=>true, 'data'=>$rows, 'page'=>$page, 'limit'=>$limit]);
+    if ($q !== '') {
+      $sql .= " AND (
+        expense_code LIKE CONCAT('%', ?, '%') OR
+        reason       LIKE CONCAT('%', ?, '%') OR
+        category     LIKE CONCAT('%', ?, '%') OR
+        status       LIKE CONCAT('%', ?, '%') OR
+        CAST(amount AS CHAR) LIKE CONCAT('%', ?, '%') OR
+        DATE_FORMAT(date, '%Y-%m-%d') LIKE CONCAT('%', ?, '%')
+      )";
+      $types  .= "ssssss";
+      $params[] = $q; $params[] = $q; $params[] = $q; $params[] = $q; $params[] = $q; $params[] = $q;
+    }
+    if ($status !== '') {
+      $sql   .= " AND status=?";
+      $types .= "s";
+      $params[] = $status;
     }
 
-    /* ----------------------------- Expenses: add ----------------------------- */
-    if ($a === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-        $eid      = (int)($_POST['employee_id'] ?? $employee_id);
-        $did      = isset($_POST['dept_id']) ? (int)$_POST['dept_id'] : $dept_id;
-        $amount   = isset($_POST['amount']) ? (float)$_POST['amount'] : null;
-        $category = s($_POST['category'] ?? null);
-        $reason   = s($_POST['reason'] ?? null);
-        $date     = s($_POST['date'] ?? null);
-        $status   = s($_POST['status'] ?? 'Pending');
+    $sql .= " ORDER BY date DESC, id DESC LIMIT ? OFFSET ?";
+    $types  .= "ii";
+    $params[] = $limit;
+    $params[] = $offset;
 
-        if (!$eid || !$did || !$amount || !$category || !$reason || !$date) {
-            json_out(['ok'=>false, 'error'=>'Missing fields'], 422);
-        }
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) json_out(['ok'=>false, 'error'=>$conn->error], 500);
+    bind_params_dynamic($stmt, $types, $params);
+    $stmt->execute();
+    $stmt->bind_result($expense_code, $date, $amount, $category, $reason, $row_status);
 
-        $expense_code = 'REQ-' . strtoupper(bin2hex(random_bytes(3)));
+    $rows = [];
+    while ($stmt->fetch()) {
+      $rows[] = [
+        'expense_code' => $expense_code,
+        'date'         => $date,
+        'amount'       => (float)$amount,
+        'category'     => $category,
+        'reason'       => $reason,
+        'status'       => $row_status
+      ];
+    }
+    $stmt->close();
+    json_out(['ok'=>true, 'data'=>$rows, 'page'=>$page, 'limit'=>$limit]);
+  }
 
-        $stmt = $conn->prepare("INSERT INTO expenses
-          (employee_id, dept_id, expense_code, amount, category, reason, status, date)
-          VALUES (?,?,?,?,?,?,?,?)");
-        if (!$stmt) json_out(['ok'=>false,'error'=>$conn->error],500);
-        $stmt->bind_param("iisdssss", $eid, $did, $expense_code, $amount, $category, $reason, $status, $date);
-        $ok = $stmt->execute();
-        $id = $stmt->insert_id;
-        $err = $ok ? null : $stmt->error;
-        $stmt->close();
+  // -------------------------- Expenses: add (POST) ----------------------------
+  if ($a === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $eid      = (int)($_POST['employee_id'] ?? $employee_id);
+    $did      = (int)($_POST['dept_id'] ?? $dept_id);
+    $amount   = isset($_POST['amount']) ? (float)$_POST['amount'] : null;
+    $category = s($_POST['category'] ?? null);
+    $reason   = s($_POST['reason'] ?? null);
+    $date     = s($_POST['date'] ?? null);
+    $status   = s($_POST['status'] ?? 'Pending');
 
-        json_out(['ok'=>$ok, 'id'=>$id, 'expense_code'=>$expense_code, 'error'=>$err]);
+    if (!$eid || !$did || $amount === null || $amount < 0 || !$category || !$reason || !$date) {
+      json_out(['ok'=>false, 'error'=>'Missing or invalid fields'], 422);
     }
 
-    /* --------------------------- Expenses: update ---------------------------- */
-    if ($a === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-        $code     = s($_POST['expense_code'] ?? null);
-        if (!$code) json_out(['ok'=>false, 'error'=>'expense_code required'], 422);
+    $expense_code = 'REQ-' . strtoupper(bin2hex(random_bytes(3)));
 
-        $set = []; $types = ""; $params = [];
+    $stmt = $conn->prepare("INSERT INTO expenses
+      (employee_id, dept_id, expense_code, amount, category, reason, status, date)
+      VALUES (?,?,?,?,?,?,?,?)");
+    if (!$stmt) json_out(['ok'=>false, 'error'=>$conn->error], 500);
 
-        if (isset($_POST['date']))     { $set[]="date=?";     $types.="s"; $params[]=$_POST['date']; }
-        if (isset($_POST['amount']))   { $set[]="amount=?";   $types.="d"; $params[]=(float)$_POST['amount']; }
-        if (isset($_POST['category'])) { $set[]="category=?"; $types.="s"; $params[]=s($_POST['category']); }
-        if (isset($_POST['reason']))   { $set[]="reason=?";   $types.="s"; $params[]=s($_POST['reason']); }
-        if (isset($_POST['status']))   { $set[]="status=?";   $types.="s"; $params[]=s($_POST['status']); }
+    $stmt->bind_param("iisdssss", $eid, $did, $expense_code, $amount, $category, $reason, $status, $date);
+    $ok = $stmt->execute();
+    $id = $stmt->insert_id;
+    $err = $ok ? null : $stmt->error;
+    $stmt->close();
 
-        if (empty($set)) json_out(['ok'=>false, 'error'=>'No fields to update'], 422);
+    json_out(['ok'=>$ok, 'id'=>$id, 'expense_code'=>$expense_code, 'error'=>$err]);
+  }
 
-        $sql = "UPDATE expenses SET ".implode(",", $set)." WHERE expense_code=? AND employee_id=?";
-        $types .= "si"; $params[]=$code; $params[]=$employee_id;
+  // ------------------------ Expenses: update (POST) ---------------------------
+  if ($a === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $code = s($_POST['expense_code'] ?? null);
+    if (!$code) json_out(['ok'=>false, 'error'=>'expense_code required'], 422);
 
-        $stmt = $conn->prepare($sql);
-        if (!$stmt) json_out(['ok'=>false,'error'=>$conn->error],500);
-        $stmt->bind_param($types, ...$params);
-        $ok = $stmt->execute();
-        $affected = $stmt->affected_rows;
-        $err = $ok ? null : $stmt->error;
-        $stmt->close();
+    $set = []; $types = ""; $params = [];
 
-        json_out(['ok'=>$ok, 'affected'=>$affected, 'error'=>$err]);
+    if (isset($_POST['date']))     { $set[] = "date=?";     $types.="s"; $params[] = (string)$_POST['date']; }
+    if (isset($_POST['amount']))   { $set[] = "amount=?";   $types.="d"; $params[] = (float)$_POST['amount']; }
+    if (isset($_POST['category'])) { $set[] = "category=?"; $types.="s"; $params[] = s($_POST['category']); }
+    if (isset($_POST['reason']))   { $set[] = "reason=?";   $types.="s"; $params[] = s($_POST['reason']); }
+    if (isset($_POST['status']))   { $set[] = "status=?";   $types.="s"; $params[] = s($_POST['status']); }
+
+    if (!$set) json_out(['ok'=>false, 'error'=>'No fields to update'], 422);
+
+    $sql = "UPDATE expenses SET ".implode(",", $set)." WHERE expense_code=? AND employee_id=?";
+    $types .= "si"; $params[] = $code; $params[] = $employee_id;
+
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) json_out(['ok'=>false, 'error'=>$conn->error], 500);
+    bind_params_dynamic($stmt, $types, $params);
+    $ok = $stmt->execute();
+    $affected = $stmt->affected_rows;
+    $err = $ok ? null : $stmt->error;
+    $stmt->close();
+
+    json_out(['ok'=>$ok, 'affected'=>$affected, 'error'=>$err]);
+  }
+
+  // ------------------------ Expenses: delete (POST) ---------------------------
+  if ($a === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $code = s($_POST['expense_code'] ?? null);
+    if (!$code) json_out(['ok'=>false, 'error'=>'expense_code required'], 422);
+
+    $stmt = $conn->prepare("DELETE FROM expenses WHERE expense_code=? AND employee_id=?");
+    if (!$stmt) json_out(['ok'=>false, 'error'=>$conn->error], 500);
+    $stmt->bind_param("si", $code, $employee_id);
+    $ok = $stmt->execute();
+    $affected = $stmt->affected_rows;
+    $err = $ok ? null : $stmt->error;
+    $stmt->close();
+
+    json_out(['ok'=>$ok, 'affected'=>$affected, 'error'=>$err]);
+  }
+
+  // ------------------------------- Stats -------------------------------------
+  if ($a === 'stats') {
+    // Pending count
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM expenses WHERE employee_id=? AND status='Pending'");
+    $stmt->bind_param("i", $employee_id);
+    $stmt->execute();
+    $stmt->bind_result($pending);
+    $stmt->fetch();
+    $stmt->close();
+
+    // Department totals
+    $dept = ['total_income'=>0.0, 'total_expenses'=>0.0, 'net_balance'=>0.0];
+    $stmt = $conn->prepare("SELECT total_income, total_expenses FROM departments WHERE id=? LIMIT 1");
+    $stmt->bind_param("i", $dept_id);
+    $stmt->execute();
+    $stmt->bind_result($inc, $exp);
+    if ($stmt->fetch()) {
+      $dept['total_income']   = (float)$inc;
+      $dept['total_expenses'] = (float)$exp;
+      $dept['net_balance']    = (float)$inc - (float)$exp;
     }
+    $stmt->close();
 
-    /* --------------------------- Expenses: delete ---------------------------- */
-    if ($a === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-        $code = s($_POST['expense_code'] ?? null);
-        if (!$code) json_out(['ok'=>false, 'error'=>'expense_code required'], 422);
-
-        $stmt = $conn->prepare("DELETE FROM expenses WHERE expense_code=? AND employee_id=?");
-        if (!$stmt) json_out(['ok'=>false,'error'=>$conn->error],500);
-        $stmt->bind_param("si", $code, $employee_id);
-        $ok = $stmt->execute();
-        $affected = $stmt->affected_rows;
-        $err = $ok ? null : $stmt->error;
-        $stmt->close();
-
-        json_out(['ok'=>$ok, 'affected'=>$affected, 'error'=>$err]);
+    // Latest salary
+    $salary = ['annual_base'=>0.0, 'monthly_net'=>0.0, 'last_paid'=>null];
+    $stmt = $conn->prepare("SELECT annual_base, monthly_net, last_paid
+                            FROM salaries WHERE employee_id=? ORDER BY id DESC LIMIT 1");
+    $stmt->bind_param("i", $employee_id);
+    $stmt->execute();
+    $stmt->bind_result($ab, $mn, $lp);
+    if ($stmt->fetch()) {
+      $salary = ['annual_base'=>(float)$ab, 'monthly_net'=>(float)$mn, 'last_paid'=>$lp];
     }
+    $stmt->close();
 
-    /* ---------------------------- Stats (cards) ------------------------------ */
-    if ($a === 'stats') {
-        $pending = 0;
-        $stmt = $conn->prepare("SELECT COUNT(*) FROM expenses WHERE employee_id=? AND status='Pending'");
-        $stmt->bind_param("i", $employee_id);
-        $stmt->execute();
-        $stmt->bind_result($pending);
-        $stmt->fetch();
-        $stmt->close();
+    json_out(['ok'=>true, 'pending'=>$pending, 'department'=>$dept, 'salary'=>$salary]);
+  }
 
-        $dept = ['total_income'=>0.0, 'total_expenses'=>0.0, 'net_balance'=>0.0];
-        $stmt = $conn->prepare("SELECT total_income, total_expenses FROM departments WHERE id=?");
-        $stmt->bind_param("i", $dept_id);
-        $stmt->execute();
-        $stmt->bind_result($inc, $exp);
-        if ($stmt->fetch()) {
-            $dept = [
-                'total_income'   => (float)$inc,
-                'total_expenses' => (float)$exp,
-                'net_balance'    => (float)$inc - (float)$exp
-            ];
-        }
-        $stmt->close();
+  // ----------------------------- Spending summary -----------------------------
+  if ($a === 'summary') {
+    $stmt = $conn->prepare("SELECT category, SUM(amount) AS total_amount
+                            FROM expenses
+                            WHERE employee_id=? AND status='Approved'
+                            GROUP BY category ORDER BY total_amount DESC");
+    $stmt->bind_param("i", $employee_id);
+    $stmt->execute();
+    $stmt->bind_result($cat, $tot);
 
-        $salary = ['annual_base'=>0.0, 'monthly_net'=>0.0, 'last_paid'=>null];
-        $stmt = $conn->prepare("SELECT annual_base, monthly_net, last_paid
-                                FROM salaries WHERE employee_id=? ORDER BY id DESC LIMIT 1");
-        $stmt->bind_param("i", $employee_id);
-        $stmt->execute();
-        $stmt->bind_result($ab, $mn, $lp);
-        if ($stmt->fetch()) {
-            $salary = [
-                'annual_base' => (float)$ab,
-                'monthly_net' => (float)$mn,
-                'last_paid'   => $lp
-            ];
-        }
-        $stmt->close();
-
-        json_out(['ok'=>true, 'pending'=>$pending, 'department'=>$dept, 'salary'=>$salary]);
+    $rows = []; $grand = 0.0;
+    while ($stmt->fetch()) {
+      $rows[] = ['category'=>$cat, 'total_amount'=>(float)$tot];
+      $grand += (float)$tot;
     }
+    $stmt->close();
 
-    /* ------------------------ Spending summary (table) ----------------------- */
-    if ($a === 'summary') {
-        $stmt = $conn->prepare("SELECT category, SUM(amount) AS total_amount
-                                FROM expenses
-                                WHERE employee_id=? AND status='Approved'
-                                GROUP BY category
-                                ORDER BY total_amount DESC");
-        $stmt->bind_param("i", $employee_id);
-        $stmt->execute();
-        $stmt->bind_result($cat, $tot);
-
-        $rows = []; $grand = 0.0;
-        while ($stmt->fetch()) {
-            $rows[] = ['category'=>$cat, 'total_amount'=>(float)$tot];
-            $grand += (float)$tot;
-        }
-        $stmt->close();
-
-        foreach ($rows as &$r) {
-            $r['share_percent'] = $grand > 0 ? round(($r['total_amount'] * 100.0) / $grand, 2) : 0.0;
-        }
-        json_out(['ok'=>true, 'total'=>$grand, 'rows'=>$rows]);
+    foreach ($rows as &$r) {
+      $r['share_percent'] = $grand > 0 ? round(($r['total_amount']*100)/$grand, 2) : 0.0;
     }
+    json_out(['ok'=>true, 'total'=>$grand, 'rows'=>$rows]);
+  }
 
-    /* --------------------------- Account: get/update ------------------------- */
-    if ($a === 'get_account') {
-        $stmt = $conn->prepare("SELECT name, email FROM employees WHERE id=? LIMIT 1");
-        $stmt->bind_param("i", $employee_id);
-        $stmt->execute();
-        $stmt->bind_result($name, $email);
-        $profile = null;
-        if ($stmt->fetch()) $profile = ['name'=>$name, 'email'=>$email];
-        $stmt->close();
-        json_out(['ok'=>true, 'profile'=>$profile]);
+  // --------------------------- Account: get/update ----------------------------
+  if ($a === 'get_account') {
+    $stmt = $conn->prepare("SELECT name, email FROM employees WHERE id=? LIMIT 1");
+    $stmt->bind_param("i", $employee_id);
+    $stmt->execute();
+    $stmt->bind_result($name, $email);
+    $profile = null;
+    if ($stmt->fetch()) $profile = ['name'=>$name, 'email'=>$email];
+    $stmt->close();
+    json_out(['ok'=>true, 'profile'=>$profile]);
+  }
+
+  if ($a === 'account_update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name  = s($_POST['name'] ?? '');
+    $email = s($_POST['email'] ?? '');
+    $pass  = $_POST['password'] ?? '';
+
+    if (!$name || !$email) json_out(['ok'=>false, 'error'=>'Missing fields'], 422);
+
+    if ($pass !== '') {
+      $hash = password_hash($pass, PASSWORD_DEFAULT);
+      $stmt = $conn->prepare("UPDATE employees SET name=?, email=?, password_hash=? WHERE id=?");
+      $stmt->bind_param("sssi", $name, $email, $hash, $employee_id);
+    } else {
+      $stmt = $conn->prepare("UPDATE employees SET name=?, email=? WHERE id=?");
+      $stmt->bind_param("ssi", $name, $email, $employee_id);
     }
+    $ok = $stmt->execute();
+    $affected = $stmt->affected_rows;
+    $err = $ok ? null : $stmt->error;
+    $stmt->close();
 
-    if ($a === 'account_update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-        $name  = s($_POST['name'] ?? '');
-        $email = s($_POST['email'] ?? '');
-        $pass  = $_POST['password'] ?? '';
+    json_out(['ok'=>$ok, 'affected'=>$affected, 'error'=>$err]);
+  }
 
-        if (!$name || !$email) json_out(['ok'=>false, 'error'=>'Missing fields'], 422);
+  // -------------------------------- Forecast ----------------------------------
+  if ($a === 'forecast') {
+    // Sum of last 30 days approved+pending (choose what you prefer; here we use all)
+    $stmt = $conn->prepare("SELECT COALESCE(SUM(amount),0)
+                            FROM expenses
+                            WHERE employee_id=? AND date >= (CURRENT_DATE - INTERVAL 30 DAY)");
+    $stmt->bind_param("i", $employee_id);
+    $stmt->execute();
+    $stmt->bind_result($sum30);
+    $stmt->fetch();
+    $stmt->close();
 
-        if ($pass !== '') {
-            $hash = password_hash($pass, PASSWORD_DEFAULT);
-            $stmt = $conn->prepare("UPDATE employees SET name=?, email=?, password_hash=? WHERE id=?");
-            $stmt->bind_param("sssi", $name, $email, $hash, $employee_id);
-        } else {
-            $stmt = $conn->prepare("UPDATE employees SET name=?, email=? WHERE id=?");
-            $stmt->bind_param("ssi", $name, $email, $employee_id);
-        }
-        $ok = $stmt->execute();
-        $affected = $stmt->affected_rows;
-        $err = $ok ? null : $stmt->error;
-        $stmt->close();
-        json_out(['ok'=>$ok, 'affected'=>$affected, 'error'=>$err]);
-    }
+    $avgDaily = ((float)$sum30) / 30.0;
+    $proj     = round($avgDaily * 30.0, 2);
+    json_out(['ok'=>true, 'avg_daily'=>round($avgDaily,2), 'projected_next_month'=>$proj]);
+  }
 
-    /* ------------------------------- Forecast -------------------------------- */
-    if ($a === 'forecast') {
-        $stmt = $conn->prepare("SELECT COALESCE(SUM(amount),0)
-                                FROM expenses
-                                WHERE employee_id=? AND date >= (CURRENT_DATE - INTERVAL 30 DAY)");
-        $stmt->bind_param("i", $employee_id);
-        $stmt->execute();
-        $stmt->bind_result($sum30);
-        $stmt->fetch();
-        $stmt->close();
+  // -------------------------------- Logout ------------------------------------
+  if ($a === 'logout') {
+    $_SESSION = [];
+    if (session_id() !== '') session_destroy();
+    // Redirecting to a (placeholder) page; adjust if you have a login screen
+    header("Location: employee-dashboard.php"); // or login.html
+    exit;
+  }
 
-        $avgDaily = ((float)$sum30) / 30.0;
-        $proj = round($avgDaily * 30.0, 2);
-        json_out(['ok'=>true, 'avg_daily'=>round($avgDaily,2), 'projected_next_month'=>$proj]);
-    }
-
-    /* -------------------------------- Logout --------------------------------- */
-    if ($a === 'logout') {
-        $_SESSION = [];
-        if (session_id() !== '') session_destroy();
-        header("Location: login.html"); exit;
-    }
-
-    json_out(['ok'=>false, 'error'=>'Unknown action'], 404);
+  json_out(['ok'=>false, 'error'=>'Unknown action'], 404);
 }
 
-/* -------------------------------------------------------------------------- */
-/*  If no action param => load HTML frontend (SPA)                            */
-/* -------------------------------------------------------------------------- */
+// ------------------------------ HTML (SPA) -----------------------------------
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -339,29 +349,43 @@ if (isset($_GET['action'])) {
           <form id="expense-form" class="grid-2 gap-16" autocomplete="off">
             <input type="hidden" name="employee_id" value="<?php echo (int)$employee_id; ?>">
             <input type="hidden" name="dept_id" value="<?php echo (int)$dept_id; ?>">
+
             <div class="form-field">
               <label for="exp-amount">Amount (USD)</label>
               <input id="exp-amount" name="amount" type="number" min="0" step="0.01" required />
             </div>
+
             <div class="form-field">
               <label for="exp-category">Category</label>
               <select id="exp-category" name="category" required>
                 <option value="">Select category</option>
-                <option>Travel</option><option>Meals</option><option>Training</option><option>Equipment</option><option>Other</option>
+                <option>Travel</option>
+                <option>Meals</option>
+                <option>Training</option>
+                <option>Equipment</option>
+                <option>Other</option>
               </select>
             </div>
+
             <div class="form-field">
               <label for="exp-date">Date</label>
               <input id="exp-date" name="date" type="date" required />
             </div>
+
             <div class="form-field">
               <label for="exp-status">Initial Status</label>
-              <select id="exp-status" name="status"><option>Pending</option><option>Approved</option><option>Rejected</option></select>
+              <select id="exp-status" name="status">
+                <option>Pending</option>
+                <option>Approved</option>
+                <option>Rejected</option>
+              </select>
             </div>
+
             <div class="form-field grid-full">
               <label for="exp-reason">Reason</label>
               <textarea id="exp-reason" name="reason" rows="4" required></textarea>
             </div>
+
             <div class="form-actions grid-full">
               <button class="btn primary" type="submit"><i class="ri-send-plane-2-line"></i> Submit Request</button>
               <button class="btn ghost" type="reset">Clear</button>
@@ -389,13 +413,17 @@ if (isset($_GET['action'])) {
           <h2>My Expense Requests</h2>
           <div class="toolbar">
             <div class="toolbar-left">
-              <div class="search-wrap"><i class="ri-search-line"></i><input id="search-input" type="text" placeholder="Search by ID, reason, category, status..." /></div>
-              <select id="status-filter" class="filter"><option value="">All Statuses</option><option>Pending</option><option>Approved</option><option>Rejected</option></select>
+              <div class="search-wrap"><i class="ri-search-line"></i><input id="search-input" type="text" placeholder="Search by ID, reason, category, status." /></div>
+              <select id="status-filter" class="filter">
+                <option value="">All Statuses</option><option>Pending</option><option>Approved</option><option>Rejected</option>
+              </select>
             </div>
           </div>
           <div class="table-wrap mt-16">
             <table id="requests-table">
-              <thead><tr><th>ID</th><th>Date</th><th>Amount</th><th>Category</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
+              <thead>
+                <tr><th>ID</th><th>Date</th><th>Amount</th><th>Category</th><th>Reason</th><th>Status</th><th>Actions</th></tr>
+              </thead>
               <tbody id="requests-tbody"></tbody>
             </table>
           </div>
@@ -439,7 +467,7 @@ if (isset($_GET['action'])) {
         </div>
       </section>
 
-      <!-- Account Management -->
+      <!-- Account -->
       <section id="account-management" class="panel">
         <div class="card">
           <h2>Account Management</h2>
@@ -462,17 +490,14 @@ if (isset($_GET['action'])) {
     async function fetchJSON(url, options = {}) {
       const res = await fetch(url, { credentials: 'same-origin', ...options });
       const text = await res.text();
-      try {
-        return JSON.parse(text);
-      } catch {
-        throw new Error('Invalid JSON from server:\n' + text);
-      }
+      try { return JSON.parse(text); }
+      catch { throw new Error('Invalid JSON from server:\\n' + text); }
     }
 
-    const $ = sel => document.querySelector(sel);
+    const $  = sel => document.querySelector(sel);
     const $$ = sel => Array.from(document.querySelectorAll(sel));
 
-    /* ---------------------------- Navigation ---------------------------- */
+    // Navigation
     $$('.nav-item').forEach(btn => {
       btn.addEventListener('click', () => {
         if (btn.id === 'logout-btn') { window.location.href = API + '?action=logout'; return; }
@@ -483,14 +508,16 @@ if (isset($_GET['action'])) {
         if (target) document.getElementById(target).classList.add('is-visible');
         $('#page-title').textContent = btn.textContent.trim();
 
-        if (target === 'request-status') loadExpenses();
-        if (target === 'salary-record' || target === 'dept-balance') loadStats();
-        if (target === 'spending-summary') loadSummary();
-        if (target === 'account-management') loadAccount();
-        if (target === 'forecasting') loadForecast();
+        if (target === 'request-status')      loadExpenses();
+        if (target === 'salary-record' ||
+            target === 'dept-balance')        loadStats();
+        if (target === 'spending-summary')    loadSummary();
+        if (target === 'account-management')  loadAccount();
+        if (target === 'forecasting')         loadForecast();
       });
     });
 
+    // Submit expense
     $('#expense-form').addEventListener('submit', async e => {
       e.preventDefault();
       const fd = new FormData(e.target);
@@ -500,21 +527,22 @@ if (isset($_GET['action'])) {
         const j = await fetchJSON(API+'?action=add', { method:'POST', body: fd });
         alert('Expense submitted: ' + j.expense_code);
         e.target.reset();
-        $('#exp-date').value = new Date().toISOString().slice(0,10);
+        if ($('#exp-date')) $('#exp-date').value = new Date().toISOString().slice(0,10);
         loadExpenses(); loadStats(); loadSummary();
       } catch (err) { alert('Submit failed: ' + err.message); }
     });
 
+    // List expenses
     async function loadExpenses(){
-      const q = $('#search-input')?.value.trim() || '';
-      const status = $('#status-filter')?.value || '';
+      const q = ($('#search-input')||{}).value?.trim?.() || '';
+      const status = ($('#status-filter')||{}).value || '';
       const tbody = $('#requests-tbody');
       if (!tbody) return;
       tbody.innerHTML = '<tr><td colspan="7">Loading…</td></tr>';
       try {
         const j = await fetchJSON(API+'?action=list&q='+encodeURIComponent(q)+'&status='+encodeURIComponent(status));
         tbody.innerHTML = '';
-        if (j.data.length) {
+        if (j.data && j.data.length) {
           j.data.forEach(r => {
             const tr = document.createElement('tr');
             tr.innerHTML = `<td>${r.expense_code}</td><td>${r.date}</td><td>$${r.amount.toFixed(2)}</td><td>${r.category}</td><td>${r.reason}</td><td>${r.status}</td><td></td>`;
@@ -523,24 +551,28 @@ if (isset($_GET['action'])) {
         } else {
           tbody.innerHTML = '<tr><td colspan="7">No results.</td></tr>';
         }
-      } catch { tbody.innerHTML = '<tr><td colspan="7">Failed to load.</td></tr>'; }
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="7">Failed to load.</td></tr>';
+      }
     }
 
+    // Cards & stats
     async function loadStats(){
       try {
         const j = await fetchJSON(API+'?action=stats');
-        $('#stat-pending').textContent = j.pending;
-        $('#salary-annual').textContent = '$'+(j.salary.annual_base||0).toFixed(2);
-        $('#salary-monthly').textContent = '$'+(j.salary.monthly_net||0).toFixed(2);
-        $('#salary-lastpaid').textContent = j.salary.last_paid || '—';
-        $('#total-income').textContent = '$'+(j.department.total_income||0).toFixed(2);
-        $('#total-expenses').textContent = '$'+(j.department.total_expenses||0).toFixed(2);
-        $('#net-balance').textContent = '$'+(j.department.net_balance||0).toFixed(2);
-        $('#stat-salary').textContent = '$'+(j.salary.monthly_net||0).toFixed(2);
-        $('#stat-balance').textContent = '$'+(j.department.net_balance||0).toFixed(2);
+        $('#stat-pending').textContent = j.pending ?? 0;
+        $('#salary-annual').textContent = '$'+((j.salary?.annual_base)||0).toFixed(2);
+        $('#salary-monthly').textContent = '$'+((j.salary?.monthly_net)||0).toFixed(2);
+        $('#salary-lastpaid').textContent = j.salary?.last_paid || '—';
+        $('#total-income').textContent = '$'+((j.department?.total_income)||0).toFixed(2);
+        $('#total-expenses').textContent = '$'+((j.department?.total_expenses)||0).toFixed(2);
+        $('#net-balance').textContent = '$'+((j.department?.net_balance)||0).toFixed(2);
+        $('#stat-salary').textContent = '$'+((j.salary?.monthly_net)||0).toFixed(2);
+        $('#stat-balance').textContent = '$'+((j.department?.net_balance)||0).toFixed(2);
       } catch {}
     }
 
+    // Summary table
     async function loadSummary(){
       const tbody = $('#summary-tbody');
       if (!tbody) return;
@@ -548,7 +580,7 @@ if (isset($_GET['action'])) {
       try {
         const j = await fetchJSON(API+'?action=summary');
         tbody.innerHTML = '';
-        if (j.rows.length){
+        if (j.rows && j.rows.length){
           j.rows.forEach(r => {
             const tr = document.createElement('tr');
             tr.innerHTML = `<td>${r.category}</td><td>$${r.total_amount.toFixed(2)}</td><td>${r.share_percent}%</td>`;
@@ -557,26 +589,23 @@ if (isset($_GET['action'])) {
         } else {
           tbody.innerHTML = '<tr><td colspan="3">No approved spending yet.</td></tr>';
         }
-      } catch { tbody.innerHTML = '<tr><td colspan="3">Failed to load.</td></tr>'; }
+      } catch {
+        tbody.innerHTML = '<tr><td colspan="3">Failed to load.</td></tr>';
+      }
     }
 
+    // Account profile
     async function loadAccount(){
       try {
         const j = await fetchJSON(API+'?action=get_account');
-        $('#account-name').value = j.profile?.name || '';
-        $('#account-email').value = j.profile?.email || '';
+        if (j.profile) {
+          $('#account-name').value  = j.profile.name  || '';
+          $('#account-email').value = j.profile.email || '';
+        }
       } catch {}
     }
 
-    $('#account-form').addEventListener('submit', async e => {
-      e.preventDefault();
-      const fd = new FormData(e.target);
-      try {
-        await fetchJSON(API+'?action=account_update', { method:'POST', body: fd });
-        alert('Account updated');
-      } catch (err) { alert('Save failed: ' + err.message); }
-    });
-
+    // Forecasting
     async function loadForecast(){
       try {
         const j = await fetchJSON(API+'?action=forecast');
@@ -585,9 +614,21 @@ if (isset($_GET['action'])) {
       } catch {}
     }
 
+    // Init
     (function init(){
       if ($('#exp-date')) $('#exp-date').value = new Date().toISOString().slice(0,10);
       loadStats(); loadExpenses(); loadSummary();
+      document.getElementById('go-to-table')?.addEventListener('click', () => {
+        document.querySelector('[data-target="request-status"]').click();
+      });
+      document.getElementById('account-form')?.addEventListener('submit', async e => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        try {
+          await fetchJSON(API+'?action=account_update', { method:'POST', body: fd });
+          alert('Account updated');
+        } catch (err) { alert('Save failed: ' + err.message); }
+      });
     })();
   </script>
 </body>

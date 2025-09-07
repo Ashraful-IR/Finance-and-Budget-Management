@@ -146,14 +146,14 @@ textarea{ resize: vertical; }
 /* --- Tables --- */
 .table-wrap{ width:100%; overflow:auto; background:#fff; border:1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); }
 
- table{ width:100%; border-collapse: collapse; min-width:800px; }
- thead th{
+table{ width:100%; border-collapse: collapse; min-width:800px; }
+thead th{
   text-align:left; font-size:12px; color:var(--muted); font-weight:700;
   padding:12px; border-bottom:1px solid var(--border); background:#f8fafc;
- }
- tbody td{ padding:12px; border-bottom:1px solid #f1f5f9; }
- tbody tr:hover{ background:#f9fafb; }
- .text-right{ text-align:right; }
+}
+tbody td{ padding:12px; border-bottom:1px solid #f1f5f9; }
+tbody tr:hover{ background:#f9fafb; }
+.text-right{ text-align:right; }
 
 /* --- Mini cards --- */
 .grid-3{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); }

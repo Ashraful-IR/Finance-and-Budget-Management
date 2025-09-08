@@ -5,7 +5,16 @@ include "config.php"; // PHP extarnal file connetion
 $success = $error = "";
 if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
 
+if (isset($_GET['error']) && $_GET['error'] === 'invalid') {
+    $error = "Enter a valid ID.";
+}
+
 $error = "";
+
+
+if (isset($_GET['error']) && $_GET['error'] === 'invalid') {
+    $error = "Enter a valid ID.";
+}
 $uid = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
 $me = null;
 if ($uid > 0) {
@@ -95,6 +104,31 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['deleteMyAccount']) &&
     session_destroy();
     header("Location: ../Login/login.php");
     exit();
+}
+$reportRow = null;
+
+// Generate on-page report
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['generateReport'])) {
+    $reportId = (int) ($_POST['reportId'] ?? 0);
+    if ($reportId > 0) {
+        // redirect to same page with GET param to prevent resubmission
+        header("Location: " . $_SERVER['PHP_SELF'] . "?reportId=$reportId#reports");
+        exit();
+    } else {
+        header("Location: " . $_SERVER['PHP_SELF'] . "?error=invalid#reports");
+        exit();
+    }
+}
+
+// Handle GET (after redirect)
+if (isset($_GET['reportId'])) {
+    $reportId = (int) $_GET['reportId'];
+    $res = $conn->query("SELECT * FROM expense WHERE Id=$reportId LIMIT 1");
+    if ($res && $res->num_rows > 0) {
+        $reportRow = $res->fetch_assoc();
+    } else {
+        $error = "No expense found with ID: $reportId";
+    }
 }
 
 ?>
@@ -191,7 +225,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['deleteMyAccount']) &&
                     <select name="PayMethod" required>
                         <option value="a" disabled selected hidden></option>
                         <option value="Cash">Cash</option>
-                        <option value="Btransfer">Bank Transfer</option>
+                        <option value="Bank transfer">Bank Transfer</option>
                         <option value="OnlineBank">Online Banking</option>
                         <option value="CCard">Credit Card</option>
                     </select>
@@ -284,7 +318,59 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['deleteMyAccount']) &&
 
             <section id="reports" class="section">
                 <h2>Reports Page</h2>
-                <p>Reports generation area...</p>
+                <p>Generate report by entering Expense ID:</p>
+                <form method="POST" action="">
+                    <input type="number" name="reportId" placeholder="Enter Expense ID" required
+                        value="<?php echo isset($_POST['reportId']) ? (int)$_POST['reportId'] : ''; ?>">
+                    <button type="submit" name="generateReport" class="primary">Generate Report</button>
+                    <button type="submit" name="downloadPDF" class="primary">Download PDF</button>
+                </form>
+
+                <?php if (isset($error) && !isset($_POST['downloadPDF'])): ?>
+                <p style="color:red;"><?php echo htmlspecialchars($error); ?></p>
+                <?php endif; ?>
+
+                <?php if ($reportRow): ?>
+                <h3>Expense Report (ID <?php echo htmlspecialchars($reportRow['Id']); ?>)</h3>
+                <table border="1" cellpadding="6" cellspacing="0">
+                    <tr>
+                        <th>ID</th>
+                        <td><?php echo htmlspecialchars($reportRow['Id']); ?></td>
+                    </tr>
+                    <tr>
+                        <th>Expense Name</th>
+                        <td><?php echo htmlspecialchars($reportRow['Expname']); ?></td>
+                    </tr>
+                    <tr>
+                        <th>Purpose</th>
+                        <td><?php echo htmlspecialchars($reportRow['Purpose']); ?></td>
+                    </tr>
+                    <tr>
+                        <th>Amount</th>
+                        <td><?php echo htmlspecialchars($reportRow['Amount']); ?></td>
+                    </tr>
+                    <tr>
+                        <th>Date</th>
+                        <td><?php echo htmlspecialchars($reportRow['Date']); ?></td>
+                    </tr>
+                    <tr>
+                        <th>Payment Method</th>
+                        <td><?php echo htmlspecialchars($reportRow['PayMethod']); ?></td>
+                    </tr>
+                    <tr>
+                        <th>Status</th>
+                        <td><?php echo htmlspecialchars($reportRow['Status']); ?></td>
+                    </tr>
+                    <tr>
+                        <th>Designation</th>
+                        <td><?php echo htmlspecialchars($reportRow['Designation']); ?></td>
+                    </tr>
+                    <tr>
+                        <th>Department</th>
+                        <td><?php echo htmlspecialchars($reportRow['Department']); ?></td>
+                    </tr>
+                </table>
+                <?php endif; ?>
             </section>
 
 

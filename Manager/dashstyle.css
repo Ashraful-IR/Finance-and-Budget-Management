@@ -211,7 +211,7 @@ button.primary:hover {
   transform: scale(1.03);
 }
 button.danger {
-  background: #ef4444;
+  background: #424444;
   color: white;
 }
 button.danger:hover {

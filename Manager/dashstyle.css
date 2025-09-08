@@ -1,19 +1,16 @@
 body {
   display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
   min-height: 100vh;
-  background: #ffffff;
   margin: 0;
-  padding: 0; 
+  background: #f1f5f9;
+  color: #333;
 }
-
 .topbar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 200px;
+  height: 90px;
   background-color: #1e293b;
   color: #00bfa6;
   display: flex;
@@ -22,8 +19,8 @@ body {
   font-size: 1.8rem;
   z-index: 0;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  border-radius: 10px 0px 10px 10px;
 }
-
 .menu {
   width: 13%;
   height: 100vh;
@@ -44,12 +41,12 @@ body {
 }
 
 .menu-header {
-  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 15px;
   margin-bottom: 20px;
+  color: #00bfa6;
 }
 
 .menu-toggle {
@@ -58,25 +55,16 @@ body {
   cursor: pointer;
 }
 
-.menu h2 {
-  margin-bottom: 40px;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #00bda4;
-  text-align: center;
-}
-
 .menu a {
+  display: block;
   width: 80%;
   padding: 12px 18px;
-  margin: 8px 0;
+  margin: 8px auto;
   text-decoration: none;
   font-weight: 600;
   font-size: 1.2rem;
   color: #fffdfd;
-  background: none;
   border-radius: 10px;
-  text-align: left;
   transition: all 0.3s ease;
 }
 
@@ -85,94 +73,81 @@ body {
   color: #00bfa6;
   transform: translateX(5px);
   box-shadow: 0 4px 12px rgba(0, 191, 166, 0.2);
-  border-radius: 10px;
 }
 
 .menu a ion-icon {
   vertical-align: middle;
   margin-right: 10px;
-  font-size: 1.2rem;
-  transition: transform 0.3s ease;
-}
-
-.menu a:hover ion-icon {
-  transform: translateX(3px);
-  color: #ffffff;
-}
-
-.menu .menu-bottom {
-  margin-top: auto;
-  margin-bottom: 20px;
+  font-size: 1.5rem;
 }
 
 .menu a span {
   vertical-align: middle;
 }
-
-.menu a ion-icon {
-  font-size: 1.5rem;
-}
-
 .menu.collapsed {
-  width: 60px !important;
+  width: 60px;
 }
 
 .menu.collapsed a {
   width: 100%;
-  padding: 12px 0;
   text-align: center;
+  padding: 12px 0;
 }
 
-.menu.collapsed a span {
-  display: none;
-}
-
+.menu.collapsed a span,
 .menu.collapsed h2 {
   display: none;
 }
 
 .menu.collapsed .menu-toggle {
-  display: block;
   margin-left: auto;
 }
 
+.menu.collapsed + .topbar {
+  left: 60px;
+}
+.menu a.active {
+  background: rgba(0, 191, 166, 0.15);
+  color: #00bfa6;
+  border-radius: 10px;
+}
+.menu.collapsed ~ .main-content {
+  margin-left: 60px;
+}
 .main-content {
-  margin-left: 240px; 
+  margin-left: 240px;
   padding: 20px;
-  padding-top: 220px; 
+  padding-top: 100px;
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content {
+  margin-left: 240px;
+  padding: 20px;
+  padding-top: 100px;
+  flex: 1;
   transition: margin-left 0.3s ease;
 }
 .content {
   width: 100%;
   max-width: 1000px;
+  margin: 0 auto;
+}
+section {
+  background: #fff;
   padding: 20px;
-  box-sizing: border-box;
-  transition: width 0.3s ease;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+section:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+}
+.section {
+  display: none;
 }
 
-.container.full-add .content {
-  width: calc(100% - 60px);
-  transition: width 0.3s ease;
-}
-
-@media (max-width: 768px) {
-  .menu {
-    width: 60px;
-  }
-
-  .main-content {
-    margin-left: 60px;
-  }
-
-  .menu a span {
-    display: none;
-  }
-
-  .menu h2 {
-    display: none;
-  }
+.section.active {
+  display: block;
 }

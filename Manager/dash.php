@@ -1,3 +1,44 @@
+<?php
+ 
+include "config.php"; // PHP extarnal file connetion
+ 
+$success = $error = "";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['Expense'])){
+    $Expname=     $_POST["Expname"];
+    $Purpose=     $_POST["Purpose"];
+    $Amount=      $_POST["Amount"];
+    $Date=        $_POST["Date"];
+    $PayMethod=   $_POST["PayMethod"];
+    $Status=      $_POST["Status"];
+    $Designation= $_POST["Designation"];
+    $Department=  $_POST["Department"];
+
+    if(empty($Expname) || empty($Purpose) || empty($AmountAmount) || empty($Date) || empty($PayMethod) || empty($Status) || empty($Designation) || empty($Department)) {
+        $error = "All section should be filled";
+    } else {
+        $sql = "INSERT INTO expense (Expname,Purpose,Amount,Date,PayMethod,Status,Designation,Department) VALUES ('$Expname','$Purpose','$Amount','$Date','$PayMethod','$Status','$Designation','$Department')";
+        if($conn->query($sql) === TRUE ) {
+            $success = "New Expense Submited ";
+        } else {
+            $error ="Error" . $conn->error;
+        }
+    }
+}
+
+?>
+
+
+
+
+
+
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -68,33 +109,46 @@
             <section id="add" class="section">
                 <h2>Add Expenses</h2>
                 <form method="POST" action="">
-                    <label>First Name:</label>
-                    <input type="text" name="fname" required placeholder="First Name">
-                    <label>Last Name:</label>
-                    <input type="text" name="lname" required placeholder="Last Name">
-                    <label>Email:</label>
-                    <input type="email" name="email" required placeholder="Email">
-                    <label>Phone Number:</label>
-                    <input type="tel" name="phone" required placeholder="Phone Number">
-                    <label>Password:</label>
-                    <input type="password" name="password" required placeholder="Password">
-                    <label>Confirm Password:</label>
-                    <input type="password" name="cpassword" required placeholder="Confirm Password">
+                    <label>Expense Name:</label>
+                    <input type="text" name="Expname" required placeholder="Expense Name">
+                    <label>Expense Purpose:</label>
+                    <input type="text" name="Purpose" required placeholder="Expense Purpose">
+                    <label>Amount:</label>
+                    <input type="number" name="Amount" required placeholder="Amount">
+                    <label>Date:</label>
+                    <input type="date" name="Date" required placeholder="Date">
+                    <label>Payment Method:</label>
+                    <select name="PayMethod" required>
+                        <option value="a" disabled selected hidden></option>
+                        <option value="Cash">Cash</option>
+                        <option value="Btransfer">Bank Transfer</option>
+                        <option value="OnlineBank">Online Banking</option>
+                        <option value="CCard">Credit Card</option>
+                    </select>
+                    <label>Status:</label>
+                    <select name="Status" required>
+                        <option value="a" disabled selected hidden></option>
+                        <option value="Paid">Paid</option>
+                        <option value="Due">Due</option>
+                        <option value="PPaid">Partial Paid</option>
+                    </select>
                     <label>Designation:</label>
-                    <select name="designation" required>
+                    <select name="Designation" required>
+                        <option value="a" disabled selected hidden></option>
                         <option value="Admin">Admin</option>
                         <option value="Manager">Manager</option>
                         <option value="Employee">Employee</option>
                         <option value="Auditor">Auditor</option>
                     </select>
                     <label>Department:</label>
-                    <select name="department" required>
+                    <select name="Department" required>
+                        <option value="a" disabled selected hidden></option>
                         <option value="HR">HR</option>
                         <option value="Accounts">Accounts</option>
                         <option value="Engineering">Engineering</option>
                         <option value="Finance">Finance</option>
                     </select>
-                    <button class="primary" type="submit" name="createUser">Create User</button>
+                    <button class="primary" type="submit" name="Expense">Submit</button>
                 </form>
             </section>
 

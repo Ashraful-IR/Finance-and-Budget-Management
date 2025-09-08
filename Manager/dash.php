@@ -135,11 +135,6 @@ if (isset($_GET['reportId'])) {
 
 
 
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 

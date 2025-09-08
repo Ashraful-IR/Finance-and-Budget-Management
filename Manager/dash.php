@@ -14,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['Expense'])){
     $Designation= $_POST["Designation"];
     $Department=  $_POST["Department"];
 
-    if(empty($Expname) || empty($Purpose) || empty($AmountAmount) || empty($Date) || empty($PayMethod) || empty($Status) || empty($Designation) || empty($Department)) {
+    if(empty($Expname) || empty($Purpose) || empty($Amount) || empty($Date) || empty($PayMethod) || empty($Status) || empty($Designation) || empty($Department)) {
         $error = "All section should be filled";
     } else {
         $sql = "INSERT INTO expense (Expname,Purpose,Amount,Date,PayMethod,Status,Designation,Department) VALUES ('$Expname','$Purpose','$Amount','$Date','$PayMethod','$Status','$Designation','$Department')";
@@ -27,10 +27,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['Expense'])){
 }
 
 ?>
-
-
-
-
 
 
 

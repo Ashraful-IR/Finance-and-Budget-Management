@@ -26,6 +26,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['Expense'])){
     }
 }
 
+
+$allExpense      = $conn->query("SELECT * FROM expense");
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ajax']) && $_POST['ajax'] === 'deleteExpense') {
+    header('Content-Type: application/json');
+    $Id = (int)($_POST['Id'] ?? 0);
+    $ok = $userId > 0 ? $conn->query("DELETE FROM expense WHERE Id=$Id") : false;
+    echo json_encode(["success" => $ok ? true : false]);
+    exit;
+}
+
+
 ?>
 
 
@@ -63,6 +75,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['Expense'])){
 
         <a href="#" onclick="showSection('add', event)">
             <ion-icon name="add-circle-outline"></ion-icon> <span>Add</span>
+        </a>
+        <a href="#" onclick="showSection('ShowExp', event)">
+            <ion-icon name="add-circle-outline"></ion-icon> <span>Show Expense</span>
         </a>
 
         <a href="#" onclick="showSection('authorize', event)">
@@ -146,6 +161,50 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['Expense'])){
                     </select>
                     <button class="primary" type="submit" name="Expense">Submit</button>
                 </form>
+
+            </section>
+            <section id="ShowExp" class="section">
+                <h2>All Expense</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Expense Name</th>
+                            <th>Expense Purpose</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Payment Method</th>
+                            <th>Status</th>
+                            <th>Designation</th>
+                            <th>Department</th>
+
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersBody">
+                        <?php if ($allExpense && $allExpense->num_rows > 0): while ($row = $allExpense->fetch_assoc()): ?>
+                        <tr>
+                            <td><?php echo $row['Id']; ?></td>
+                            <td><?php echo $row['Expname']; ?></td>
+                            <td><?php echo $row['Purpose']; ?></td>
+                            <td><?php echo $row['Amount']; ?></td>
+                            <td><?php echo $row['Date']; ?></td>
+                            <td><?php echo $row['PayMethod']; ?></td>
+                            <td><?php echo $row['Status']; ?></td>
+                            <td><?php echo $row['Designation']; ?></td>
+                            <td><?php echo $row['Department']; ?></td>
+                            <td>
+                                <button class="danger" type="button"
+                                    onclick="deleteExpense(<?php echo $row['Id']; ?>, this)">Delete</button>
+                            </td>
+                        </tr>
+                        <?php endwhile; else: ?>
+                        <tr>
+                            <td colspan="8">No users found</td>
+                        </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
             </section>
 
             <section id="authorize" class="section">

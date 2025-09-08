@@ -139,7 +139,7 @@ section {
   padding: 20px;
   border-radius: 14px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 section:hover {
@@ -153,57 +153,112 @@ section:hover {
 .section.active {
   display: block;
 }
-input::placeholder, select::placeholder {
-    opacity: 0.2;
-    color: #333;
+input::placeholder,
+select::placeholder {
+  opacity: 0.2;
+  color: #333;
 }
 h2 {
-    margin-top: 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 15px;
-    font-weight: bolder;
+  margin-top: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 15px;
+  font-weight: bolder;
 }
 
 form {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 label {
-    font-size: 14px;
-    font-weight: 500;
-    color: #13161b;
+  font-size: 14px;
+  font-weight: 500;
+  color: #13161b;
 }
-input, select {
-    padding: 10px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: border 0.3s;
+input,
+select {
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border 0.3s;
 }
-input:focus, select:focus {
-    outline: none;
-    border: 1px solid #00bfa6;
-    box-shadow: 0 0 0 3px rgba(0,191,166,0.2);
+input:focus,
+select:focus {
+  outline: none;
+  border: 1px solid #00bfa6;
+  box-shadow: 0 0 0 3px rgba(0, 191, 166, 0.2);
 }
 
 button {
-    padding: 10px;
-    border: none;
-    border-radius: 8px;
-    font-weight: 500;
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 button.primary {
-    background: #424444;
-    height: 50px;
-    color: white;
+  background: #424444;
+  height: 50px;
+  color: white;
 }
 button.primary:hover {
-    background: #009e8a;
-    transform: scale(1.03);
+  background: #009e8a;
+  transform: scale(1.03);
+}
+button.danger {
+  background: #ef4444;
+  color: white;
+}
+button.danger:hover {
+  background: #dc2626;
+  transform: scale(1.03);
+}
+button.success {
+  background: #10b981;
+  color: white;
+}
+button.success:hover {
+  background: #059669;
+  transform: scale(1.03);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 14px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+thead {
+  background: #f9fafb;
+}
+table,
+th,
+td {
+  border: 1px solid #e2e8f0;
+}
+th,
+td {
+  padding: 12px;
+  text-align: left;
+}
+.active {
+  display: block;
+}
+.inactive {
+  display: none;
+}
+.status-active {
+  color: #10b981;
+  font-weight: 600;
+}
+.status-inactive {
+  color: #ef4444;
+  font-weight: 600;
 }

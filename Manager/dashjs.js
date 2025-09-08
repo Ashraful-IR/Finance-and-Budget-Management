@@ -34,3 +34,33 @@ function logout() {
   window.location.replace("../LogIn/login.php");
   alert("Are You Sure You Want To Logout?");
 }
+function deleteExpense(id, btn) {
+            if (!confirm('Are you sure you want to delete this user?')) return;
+            const data = new URLSearchParams();
+            data.append('ajax','deleteExpense');
+            data.append('Id', Id);
+            fetch('dash.php', {
+                method: 'POST',
+                headers: {'Content-Type':'application/x-www-form-urlencoded'},
+                body: data.toString()
+            })
+            .then(r => r.json())
+            .then(j => {
+                if (j && j.success) {
+                    const tr = btn.closest('tr');
+                    const tbody = tr.parentElement;
+                    tr.remove();
+                    if (tbody.children.length === 0) {
+                        const empty = document.createElement('tr');
+                        const td = document.createElement('td');
+                        td.colSpan = 8;
+                        td.textContent = 'No users found';
+                        empty.appendChild(td);
+                        tbody.appendChild(empty);
+                    }
+                } else {
+                    alert('Delete failed');
+                }
+            })
+            .catch(() => alert('Delete failed'));
+        }

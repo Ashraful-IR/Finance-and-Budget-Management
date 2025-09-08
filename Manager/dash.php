@@ -1,8 +1,24 @@
 <?php
- 
+session_start();
 include "config.php"; // PHP extarnal file connetion
  
 $success = $error = "";
+if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
+
+$error = "";
+$uid = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
+$me = null;
+if ($uid > 0) {
+    $resMe = $conn->query("SELECT * FROM Users WHERE id=$uid LIMIT 1");
+    $me = $resMe ? $resMe->fetch_assoc() : null;
+}
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['logout'])) {
+    session_unset();
+    session_destroy();
+    header("Location: ../Login/login.php");
+    exit();
+}
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['Expense'])){
     $Expname=     $_POST["Expname"];
@@ -38,7 +54,48 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ajax']) && $_POST['aj
     echo json_encode(["success" => $ok ? true : false]);
     exit;
 }
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['updateMyProfile']) && $uid > 0) {
+    $my_fname = $_POST['my_fname'];
+    $my_lname = $_POST['my_lname'];
+    $my_email = $_POST['my_email'];
+    $my_phone = $_POST['my_phone'];
+    $my_desi  = $_POST['my_desi'];
+    $my_dept  = $_POST['my_dept'];
 
+    if ($my_fname==="" || $my_lname==="" || $my_email==="" || $my_phone==="" || $my_desi==="" || $my_dept==="") {
+        $error = "All fields are required.";
+    } else {
+        $dup = $conn->query("SELECT id FROM Users WHERE email='$my_email' AND id<>$uid LIMIT 1");
+        if ($dup && $dup->num_rows > 0) {
+            $error = "Email already exists.";
+        } else {
+            $conn->query("UPDATE Users SET fname='$my_fname', lname='$my_lname', email='$my_email', phone='$my_phone', desi='$my_desi', dept='$my_dept' WHERE id=$uid");
+            header("Location: dash.php#accountMgmt");
+            exit();
+        }
+    }
+}
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['updateMyPassword']) && $uid > 0) {
+    $p1 = $_POST['myNewPassword'] ?? '';
+    $p2 = $_POST['myConfirmPassword'] ?? '';
+    if ($p1 === '' || $p2 === '') {
+        $error = "Enter password.";
+    } elseif ($p1 !== $p2) {
+        $error = "Passwords do not match.";
+    } else {
+        $conn->query("UPDATE Users SET pass='$p1', cpass='$p1' WHERE id=$uid");
+        header("Location: dash.php#accountMgmt");
+        exit();
+    }
+}
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['deleteMyAccount']) && $uid > 0) {
+    $conn->query("DELETE FROM Users WHERE id=$uid");
+    session_destroy();
+    header("Location: ../Login/login.php");
+    exit();
+}
 
 ?>
 
@@ -98,7 +155,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ajax']) && $_POST['aj
             <ion-icon name="document-text-outline"></ion-icon> <span>Reports</span>
         </a>
 
-        <a href="#">
+        <a href="#" onclick="showSection('account', event)">
             <ion-icon name="person-outline"></ion-icon> <span>Account</span>
         </a>
 
@@ -209,6 +266,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ajax']) && $_POST['aj
                 </table>
             </section>
 
+
             <section id="authorize" class="section">
                 <h2>Authorize Page</h2>
                 <p>Authorization related content...</p>
@@ -227,6 +285,79 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ajax']) && $_POST['aj
             <section id="reports" class="section">
                 <h2>Reports Page</h2>
                 <p>Reports generation area...</p>
+            </section>
+
+
+            <section id="account" class="section">
+                <h2>Account Management</h2>
+                <?php if ($uid===0 || !$me): ?>
+                <p>Please log in first.</p>
+                <?php else: ?>
+                <h3>Your Profile</h3>
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <td><?php echo $me['id']; ?></td>
+                    </tr>
+                    <tr>
+                        <th>Name</th>
+                        <td><?php echo $me['fname']." ".$me['lname']; ?></td>
+                    </tr>
+                    <tr>
+                        <th>Email</th>
+                        <td><?php echo $me['email']; ?></td>
+                    </tr>
+                    <tr>
+                        <th>Phone</th>
+                        <td><?php echo $me['phone']; ?></td>
+                    </tr>
+                    <tr>
+                        <th>Designation</th>
+                        <td><?php echo $me['desi']; ?></td>
+                    </tr>
+                    <tr>
+                        <th>Department</th>
+                        <td><?php echo $me['dept']; ?></td>
+                    </tr>
+                    <tr>
+                        <th>Status</th>
+                        <td><?php echo $me['status']; ?></td>
+                    </tr>
+                </table>
+
+                <h3>Edit Profile</h3>
+                <form method="POST">
+                    <input type="text" name="my_fname" value="<?php echo $me['fname']; ?>" required>
+                    <input type="text" name="my_lname" value="<?php echo $me['lname']; ?>" required>
+                    <input type="email" name="my_email" value="<?php echo $me['email']; ?>" required>
+                    <input type="text" name="my_phone" value="<?php echo $me['phone']; ?>" required>
+                    <select name="my_desi" required>
+                        <option <?php if($me['desi']=='Admin') echo 'selected'; ?>>Admin</option>
+                        <option <?php if($me['desi']=='Manager') echo 'selected'; ?>>Manager</option>
+                        <option <?php if($me['desi']=='Employee') echo 'selected'; ?>>Employee</option>
+                        <option <?php if($me['desi']=='Auditor') echo 'selected'; ?>>Auditor</option>
+                    </select>
+                    <select name="my_dept" required>
+                        <option <?php if($me['dept']=='HR') echo 'selected'; ?>>HR</option>
+                        <option <?php if($me['dept']=='Accounts') echo 'selected'; ?>>Accounts</option>
+                        <option <?php if($me['dept']=='Engineering') echo 'selected'; ?>>Engineering</option>
+                        <option <?php if($me['dept']=='Finance') echo 'selected'; ?>>Finance</option>
+                    </select>
+                    <button class="primary" type="submit" name="updateMyProfile">Save Changes</button>
+                </form>
+
+                <h3>Change Password</h3>
+                <form method="POST">
+                    <input type="password" name="myNewPassword" placeholder="New password" required>
+                    <input type="password" name="myConfirmPassword" placeholder="Confirm password" required>
+                    <button type="submit" name="updateMyPassword">Update Password</button>
+                </form>
+
+                <h3>Delete Account</h3>
+                <form method="POST" onsubmit="return confirm('Delete your account? This cannot be undone.');">
+                    <button class="danger" type="submit" name="deleteMyAccount">Delete My Account</button>
+                </form>
+                <?php endif; ?>
             </section>
 
         </div>

@@ -34,7 +34,7 @@ function logout() {
   window.location.replace("../LogIn/login.php");
   alert("Are You Sure You Want To Logout?");
 }
-function deleteExpense(id, btn) {
+function deleteExpense(Id, btn) {
             if (!confirm('Are you sure you want to delete this user?')) return;
             const data = new URLSearchParams();
             data.append('ajax','deleteExpense');

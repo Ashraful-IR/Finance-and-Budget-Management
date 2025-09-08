@@ -20,6 +20,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['Expense'])){
         $sql = "INSERT INTO expense (Expname,Purpose,Amount,Date,PayMethod,Status,Designation,Department) VALUES ('$Expname','$Purpose','$Amount','$Date','$PayMethod','$Status','$Designation','$Department')";
         if($conn->query($sql) === TRUE ) {
             $success = "New Expense Submited ";
+            header("Location: " . $_SERVER['PHP_SELF'] . "?success=1");
+            exit();
         } else {
             $error ="Error" . $conn->error;
         }
@@ -32,7 +34,7 @@ $allExpense      = $conn->query("SELECT * FROM expense");
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ajax']) && $_POST['ajax'] === 'deleteExpense') {
     header('Content-Type: application/json');
     $Id = (int)($_POST['Id'] ?? 0);
-    $ok = $userId > 0 ? $conn->query("DELETE FROM expense WHERE Id=$Id") : false;
+    $ok = $Id > 0 ? $conn->query("DELETE FROM expense WHERE Id=$Id") : false;
     echo json_encode(["success" => $ok ? true : false]);
     exit;
 }
@@ -77,7 +79,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ajax']) && $_POST['aj
             <ion-icon name="add-circle-outline"></ion-icon> <span>Add</span>
         </a>
         <a href="#" onclick="showSection('ShowExp', event)">
-            <ion-icon name="add-circle-outline"></ion-icon> <span>Show Expense</span>
+            <ion-icon name="eye-outline"></ion-icon> <span>Show Expense</span>
         </a>
 
         <a href="#" onclick="showSection('authorize', event)">

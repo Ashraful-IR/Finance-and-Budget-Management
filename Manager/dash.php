@@ -46,7 +46,7 @@
         </a>
     </div>
 
-  
+
     <div class="topbar">
         <h1>Manager Dashboard</h1>
     </div>
@@ -55,34 +55,9 @@
             <div id="dashboard" class="section active">
                 <p>Welcome to the Manager Dashboard. Use the menu to navigate through different sections.</p>
             </div>
-
-            <div id="Add" class="section">
-                Hi
-            </div>
-
-            <div id="Authorize" class="section">
-                <h1>Pending Authorizations</h1>
-                <ul id="authorizationList"></ul>
-            </div>
-
-            <div id="Balance" class="section">
-                <h1>Current Balance</h1>
-                <p id="balanceAmount">$0.00</p>
-                <button type="button" onclick="refreshBalance()">Refresh Balance</button>
-            </div>
-
-            <div id="Transactions" class="section">
-                <h1>Transaction History</h1>
-                <ul id="transactionList"></ul>
-            </div>
-
-            <div id="Generate_reports" class="section">
-                <h1>Generate Reports</h1>
-                <button type="button" onclick="generateReport()">Generate Report</button>
-                <div id="reportSection"></div>
-            </div>
         </div>
     </div>
 
 </body>
+
 </html>

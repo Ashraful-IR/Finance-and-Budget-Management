@@ -10,8 +10,6 @@ if (isset($_GET['error']) && $_GET['error'] === 'invalid') {
 }
 
 $error = "";
-
-
 if (isset($_GET['error']) && $_GET['error'] === 'invalid') {
     $error = "Enter a valid ID.";
 }
@@ -28,6 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['logout'])) {
     header("Location: ../Login/login.php");
     exit();
 }
+
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['Expense'])){
     $Expname=     $_POST["Expname"];
@@ -55,7 +54,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['Expense'])){
 
 
 $allExpense      = $conn->query("SELECT * FROM expense");
-
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ajax']) && $_POST['ajax'] === 'deleteExpense') {
     header('Content-Type: application/json');
     $Id = (int)($_POST['Id'] ?? 0);
@@ -63,6 +61,40 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ajax']) && $_POST['aj
     echo json_encode(["success" => $ok ? true : false]);
     exit;
 }
+
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addincome'])){
+    $IncomeName=  $_POST["IncomeName"];
+    $IncomeSource=$_POST["IncomeSource"];
+    $Amount=      $_POST["Amount"];
+    $Date=        $_POST["Date"];
+    $PayMethod=   $_POST["PayMethod"];
+    $Status=      $_POST["Status"];
+    $Designation= $_POST["Designation"];
+    $Department=  $_POST["Department"];
+
+    if(empty($IncomeName) || empty($IncomeSource) || empty($Amount) || empty($Date) || empty($PayMethod) || empty($Status) || empty($Designation) || empty($Department)) {
+        $error = "All section should be filled";
+    } else {
+        $sql = "INSERT INTO income (IncomeName,IncomeSource,Amount,Date,PayMethod,Status,Designation,Department) VALUES ('$IncomeName','$IncomeSource','$Amount','$Date','$PayMethod','$Status','$Designation','$Department')";
+        if($conn->query($sql) === TRUE ) {
+            $success = "New Expense Submited ";
+            header("Location: " . $_SERVER['PHP_SELF'] . "?success=1");
+            exit();
+        } else {
+            $error ="Error" . $conn->error;
+        }
+    }
+}
+$allIncome      = $conn->query("SELECT * FROM income");
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ajax']) && $_POST['ajax'] === 'deleteIncome') {
+    header('Content-Type: application/json');
+    $Id = (int)($_POST['Id'] ?? 0);
+    $ok = $Id > 0 ? $conn->query("DELETE FROM income WHERE Id=$Id") : false;
+    echo json_encode(["success" => $ok ? true : false]);
+    exit;
+}
+
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['updateMyProfile']) && $uid > 0) {
     $my_fname = $_POST['my_fname'];
     $my_lname = $_POST['my_lname'];
@@ -162,10 +194,16 @@ if (isset($_GET['reportId'])) {
         </a>
 
         <a href="#" onclick="showSection('add', event)">
-            <ion-icon name="add-circle-outline"></ion-icon> <span>Add</span>
+            <ion-icon name="add-circle-outline"></ion-icon> <span>Add Expense</span>
+        </a>
+        <a href="#" onclick="showSection('addincome', event)">
+            <ion-icon name="cash-outline"></ion-icon> <span>Add Income</span>
+        </a>
+        <a href="#" onclick="showSection('ShowInc', event)">
+            <ion-icon name="bag-add-outline"></ion-icon> <span>Show Income</span>
         </a>
         <a href="#" onclick="showSection('ShowExp', event)">
-            <ion-icon name="eye-outline"></ion-icon> <span>Show Expense</span>
+            <ion-icon name="list-outline"></ion-icon> <span>Show Expense</span>
         </a>
 
         <a href="#" onclick="showSection('authorize', event)">
@@ -249,8 +287,60 @@ if (isset($_GET['reportId'])) {
                     </select>
                     <button class="primary" type="submit" name="Expense">Submit</button>
                 </form>
+            </section>
+
+
+
+            <section id="addincome" class="section">
+                <h2>Add Income</h2>
+                <form method="POST" action="">
+                    <label>Income Name:</label>
+                    <input type="text" name="IncomeName" required placeholder="Income Name">
+                    <label>Income Source:</label>
+                    <input type="text" name="IncomeSource" required placeholder="Income Source">
+                    <label>Amount:</label>
+                    <input type="number" name="Amount" required placeholder="Amount">
+                    <label>Date:</label>
+                    <input type="date" name="Date" required placeholder="Date">
+                    <label>Payment Method:</label>
+                    <select name="PayMethod" required>
+                        <option value="a" disabled selected hidden></option>
+                        <option value="Cash">Cash</option>
+                        <option value="Bank transfer">Bank Transfer</option>
+                        <option value="OnlineBank">Online Banking</option>
+                        <option value="CCard">Credit Card</option>
+                    </select>
+                    <label>Status:</label>
+                    <select name="Status" required>
+                        <option value="a" disabled selected hidden></option>
+                        <option value="Paid">Paid</option>
+                        <option value="Due">Due</option>
+                        <option value="PPaid">Partial Paid</option>
+                    </select>
+                    <label>Designation:</label>
+                    <select name="Designation" required>
+                        <option value="a" disabled selected hidden></option>
+                        <option value="Admin">Admin</option>
+                        <option value="Manager">Manager</option>
+                        <option value="Employee">Employee</option>
+                        <option value="Auditor">Auditor</option>
+                    </select>
+                    <label>Department:</label>
+                    <select name="Department" required>
+                        <option value="a" disabled selected hidden></option>
+                        <option value="HR">HR</option>
+                        <option value="Accounts">Accounts</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="Finance">Finance</option>
+                    </select>
+                    <button class="primary" type="submit" name="addincome">Submit</button>
+                </form>
 
             </section>
+
+
+
+
             <section id="ShowExp" class="section">
                 <h2>All Expense</h2>
                 <table>
@@ -284,6 +374,51 @@ if (isset($_GET['reportId'])) {
                             <td>
                                 <button class="danger" type="button"
                                     onclick="deleteExpense(<?php echo $row['Id']; ?>, this)">Delete</button>
+                            </td>
+                        </tr>
+                        <?php endwhile; else: ?>
+                        <tr>
+                            <td colspan="8">No users found</td>
+                        </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </section>
+
+
+            <section id="ShowInc" class="section">
+                <h2>All Icome</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Income Name</th>
+                            <th>Income Source</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Payment Method</th>
+                            <th>Status</th>
+                            <th>Designation</th>
+                            <th>Department</th>
+
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersBody">
+                        <?php if ($allIncome && $allIncome->num_rows > 0): while ($row = $allIncome->fetch_assoc()): ?>
+                        <tr>
+                            <td><?php echo $row['Id']; ?></td>
+                            <td><?php echo $row['IncomeName']; ?></td>
+                            <td><?php echo $row['IncomeSource']; ?></td>
+                            <td><?php echo $row['Amount']; ?></td>
+                            <td><?php echo $row['Date']; ?></td>
+                            <td><?php echo $row['PayMethod']; ?></td>
+                            <td><?php echo $row['Status']; ?></td>
+                            <td><?php echo $row['Designation']; ?></td>
+                            <td><?php echo $row['Department']; ?></td>
+                            <td>
+                                <button class="danger" type="button"
+                                    onclick="deleteIncome(<?php echo $row['Id']; ?>, this)">Delete</button>
                             </td>
                         </tr>
                         <?php endwhile; else: ?>

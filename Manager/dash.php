@@ -137,20 +137,31 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['deleteMyAccount']) &&
     header("Location: ../Login/login.php");
     exit();
 }
+$activeSection = "dashboard";
 $reportRow = null;
+$reportTable = null;
+$error = "";
 
-// Generate on-page report
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['generateReport'])) {
-    $reportId = (int) ($_POST['reportId'] ?? 0);
-    if ($reportId > 0) {
-        // redirect to same page with GET param to prevent resubmission
-        header("Location: " . $_SERVER['PHP_SELF'] . "?reportId=$reportId#reports");
-        exit();
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['generateReport'])) {
+    $activeSection = "reports";
+    $reportId = (int)($_POST['reportId'] ?? 0);
+    $reportTable = $_POST['reportTable'] ?? 'expense';
+
+    $allowedTables = ['expense', 'transaction', 'income'];
+    if (!in_array($reportTable, $allowedTables)) {
+        $error = "Invalid table selected.";
+    } elseif ($reportId <= 0) {
+        $error = "Enter a valid ID.";
     } else {
-        header("Location: " . $_SERVER['PHP_SELF'] . "?error=invalid#reports");
-        exit();
+        $res = $conn->query("SELECT * FROM $reportTable WHERE Id=$reportId LIMIT 1");
+        if ($res && $res->num_rows > 0) {
+            $reportRow = $res->fetch_assoc();
+        } else {
+            $error = "No record found with ID: $reportId in table $reportTable";
+        }
     }
 }
+
 
 // Handle GET (after redirect)
 if (isset($_GET['reportId'])) {
@@ -448,57 +459,37 @@ if (isset($_GET['reportId'])) {
 
             <section id="reports" class="section">
                 <h2>Reports Page</h2>
-                <p>Generate report by entering Expense ID:</p>
+                <p>Generate report by entering ID:</p>
                 <form method="POST" action="">
-                    <input type="number" name="reportId" placeholder="Enter Expense ID" required
-                        value="<?php echo isset($_POST['reportId']) ? (int)$_POST['reportId'] : ''; ?>">
-                    <button type="submit" name="generateReport" class="primary">Generate Report</button>
-                    <button type="submit" name="downloadPDF" class="primary">Download PDF</button>
-                </form>
+                    <label>Select Table:</label>
+                    <select name="reportTable" required>
+                        <option value="a" disabled selected hidden></option>
+                        <option value="expense">Expense</option>
+                        <option value="transaction">Transaction</option>
+                        <option value="income">Income</option>
+                    </select>
 
-                <?php if (isset($error) && !isset($_POST['downloadPDF'])): ?>
+                    <label>Enter ID:</label>
+                    <input type="number" name="reportId" placeholder="Enter ID" required
+                        value="<?php echo isset($_POST['reportId']) ? (int)$_POST['reportId'] : ''; ?>">
+
+                    <button type="submit" name="generateReport">Generate Report</button>
+                </form>
+                <?php if ($error): ?>
                 <p style="color:red;"><?php echo htmlspecialchars($error); ?></p>
                 <?php endif; ?>
 
                 <?php if ($reportRow): ?>
-                <h3>Expense Report (ID <?php echo htmlspecialchars($reportRow['Id']); ?>)</h3>
-                <table border="1" cellpadding="6" cellspacing="0">
-                    <tr>
-                        <th>ID</th>
-                        <td><?php echo htmlspecialchars($reportRow['Id']); ?></td>
-                    </tr>
-                    <tr>
-                        <th>Expense Name</th>
-                        <td><?php echo htmlspecialchars($reportRow['Expname']); ?></td>
-                    </tr>
-                    <tr>
-                        <th>Purpose</th>
-                        <td><?php echo htmlspecialchars($reportRow['Purpose']); ?></td>
-                    </tr>
-                    <tr>
-                        <th>Amount</th>
-                        <td><?php echo htmlspecialchars($reportRow['Amount']); ?></td>
-                    </tr>
-                    <tr>
-                        <th>Date</th>
-                        <td><?php echo htmlspecialchars($reportRow['Date']); ?></td>
-                    </tr>
-                    <tr>
-                        <th>Payment Method</th>
-                        <td><?php echo htmlspecialchars($reportRow['PayMethod']); ?></td>
-                    </tr>
-                    <tr>
-                        <th>Status</th>
-                        <td><?php echo htmlspecialchars($reportRow['Status']); ?></td>
-                    </tr>
-                    <tr>
-                        <th>Designation</th>
-                        <td><?php echo htmlspecialchars($reportRow['Designation']); ?></td>
-                    </tr>
-                    <tr>
-                        <th>Department</th>
-                        <td><?php echo htmlspecialchars($reportRow['Department']); ?></td>
-                    </tr>
+                <h3>Report Result (<?php echo ucfirst($reportTable); ?>)</h3>
+                <table border="1" cellpadding="8" cellspacing="0">
+                    <tbody>
+                        <?php foreach ($reportRow as $key => $value): ?>
+                        <tr>
+                            <th><?php echo htmlspecialchars($key); ?></th>
+                            <td><?php echo htmlspecialchars($value); ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
                 </table>
                 <?php endif; ?>
             </section>
@@ -579,5 +570,10 @@ if (isset($_GET['reportId'])) {
         </div>
     </div>
 </body>
+<script>
+  if (window.history.replaceState) {
+      window.history.replaceState(null, null, window.location.href);
+  }
+</script>
 
 </html>

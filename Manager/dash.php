@@ -163,6 +163,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['generateReport'])) {
 }
 
 
+
+
 // Handle GET (after redirect)
 if (isset($_GET['reportId'])) {
     $reportId = (int) $_GET['reportId'];

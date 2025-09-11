@@ -104,3 +104,25 @@ window.addEventListener("DOMContentLoaded", () => {
     showSection(hash.substring(1), null); // remove the # for sectionId
   }
 });
+async function refreshBalance() {
+    const res = await fetch('fetch_balance.php'); // make sure this file returns JSON including departments
+    const data = await res.json();
+
+    // Build HTML for per-department balances
+    let deptHtml = '';
+    if (data.departments) {
+        for (const [dept, bal] of Object.entries(data.departments)) {
+            deptHtml += `<p><strong>${dept} Department Balance: $${bal.toFixed(2)}</strong></p>`;
+        }
+    }
+
+    document.getElementById('balance').innerHTML = `
+        <h2>Balance Page</h2>
+        <p>Total Income: $${data.totalIncome.toFixed(2)}</p>
+        <p>Total Expense: $${data.totalExpense.toFixed(2)}</p>
+        <p><strong>Current Balance: $${data.balance.toFixed(2)}</strong></p>
+        <hr>
+        ${deptHtml}
+    `;
+}
+

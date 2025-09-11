@@ -1,6 +1,8 @@
 <?php
 session_start();
 include "config.php"; // PHP extarnal file connetion
+
+
  
 $success = $error = "";
 if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
@@ -27,7 +29,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['logout'])) {
     exit();
 }
 
-
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['Expense'])){
     $Expname=     $_POST["Expname"];
     $Purpose=     $_POST["Purpose"];
@@ -51,6 +52,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['Expense'])){
         }
     }
 }
+
+
+// Calculate totals
+$totalExpense = 0;
+$totalIncome = 0;
+
+$resExp = $conn->query("SELECT SUM(Amount) AS total FROM expense");
+if ($resExp && $resExp->num_rows > 0) {
+    $totalExpense = (float) $resExp->fetch_assoc()['total'];
+}
+
+$resInc = $conn->query("SELECT SUM(Amount) AS total FROM income");
+if ($resInc && $resInc->num_rows > 0) {
+    $totalIncome = (float) $resInc->fetch_assoc()['total'];
+}
+
+// Current balance = income - expense
+$balance = $totalIncome - $totalExpense;
+
+
 
 
 $allExpense      = $conn->query("SELECT * FROM expense");
@@ -225,10 +246,6 @@ if (isset($_GET['reportId'])) {
 
         <a href="#" onclick="showSection('balance', event)">
             <ion-icon name="wallet-outline"></ion-icon> <span>Balance</span>
-        </a>
-
-        <a href="#" onclick="showSection('transactions', event)">
-            <ion-icon name="list-outline"></ion-icon> <span>Transactions</span>
         </a>
 
         <a href="#" onclick="showSection('reports', event)">
@@ -451,7 +468,9 @@ if (isset($_GET['reportId'])) {
 
             <section id="balance" class="section">
                 <h2>Balance Page</h2>
-                <p>Your balance details...</p>
+                <p>Total Income: $<?php echo number_format($totalIncome, 2); ?></p>
+                <p>Total Expense: $<?php echo number_format($totalExpense, 2); ?></p>
+                <p><strong>Current Balance: $<?php echo number_format($balance, 2); ?></strong></p>
             </section>
 
             <section id="transactions" class="section">
@@ -573,9 +592,9 @@ if (isset($_GET['reportId'])) {
     </div>
 </body>
 <script>
-  if (window.history.replaceState) {
-      window.history.replaceState(null, null, window.location.href);
-  }
+if (window.history.replaceState) {
+    window.history.replaceState(null, null, window.location.href);
+}
 </script>
 
 </html>

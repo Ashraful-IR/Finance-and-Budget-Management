@@ -11,8 +11,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $designation     = $_POST["designation"];
     $department      = $_POST["department"];
     $status          = "Active";
+    $agree           = isset($_POST["agree"]) ? 1 : 0;
 
-    if (
+    if ($agree === 0) {
+        echo "<script>alert('You must agree to the Terms & Conditions before signing up');</script>";
+    } elseif (
         empty($firstname) || empty($lastname) || empty($email) ||
         empty($phonenumber) || empty($password) || empty($confirmpassword) ||
         empty($designation) || empty($department)
@@ -124,7 +127,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <div class="checkbox">
                 <p>
-                    <input type="checkbox" required>
+                    <!-- ✅ added name="agree" -->
+                    <input type="checkbox" name="agree">
                     I confirm that my information is accurate and agree to the Terms &amp; Conditions and Privacy Policy.
                 </p>
             </div>
@@ -135,6 +139,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </form>
 
-   
+    <script>
+    document.querySelector("form").addEventListener("submit", function(e) {
+        const checkbox = document.querySelector("input[name='agree']");
+        if (!checkbox.checked) {
+            e.preventDefault(); 
+            alert("You must agree to the Terms & Conditions before signing up.");
+        }
+    });
+    </script>
 </body>
 </html>

@@ -19,7 +19,7 @@ body {
   font-size: 1.8rem;
   z-index: 0;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  border-radius: 10px 0px 10px 10px;
+  border-radius: 0px 0px 10px 10px;
 }
 .menu {
   width: 13%;

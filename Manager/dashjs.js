@@ -37,7 +37,7 @@ function logout() {
   alert("Are You Sure You Want To Logout?");
 }
 function deleteExpense(Id, btn) {
-  if (!confirm("Are you sure you want to delete this user?")) return;
+  if (!confirm("Are you sure you want to delete this Expense?")) return;
   const data = new URLSearchParams();
   data.append("ajax", "deleteExpense");
   data.append("Id", Id);
@@ -68,7 +68,7 @@ function deleteExpense(Id, btn) {
 }
 
 function deleteIncome(Id, btn) {
-  if (!confirm("Are you sure you want to delete this user?")) return;
+  if (!confirm("Are you sure you want to delete this Income?")) return;
   const data = new URLSearchParams();
   data.append("ajax", "deleteIncome");
   data.append("Id", Id);

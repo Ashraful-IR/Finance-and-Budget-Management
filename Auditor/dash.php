@@ -33,7 +33,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['holdTransaction'])) {
         $conn->query("UPDATE users SET status='Held' WHERE id=$userId");
     }
 
-    // Preserve filters after status update
     $queryParams = array_filter([
         'id' => $_POST['id'] ?? '',
         'category' => $_POST['category'] ?? '',
@@ -75,12 +74,25 @@ if (!empty($_GET['download'])) {
     exit();
 }
 
-// Load records for page into array
+// Load users for Dashboard & User Credentials
 $res = $conn->query(buildFilterSQL($conn, $filters));
 $users = [];
+$usersList = [];
 if ($res && $res->num_rows) {
     while ($row = $res->fetch_assoc()) {
         $users[] = $row;
+        $usersList[] = $row;
+    }
+}
+
+// Load expenses for Hidden Info
+$expensesRes = $conn->query("SELECT * FROM expenses");
+$expenses = [];
+$totalAmount = 0; // to sum all amounts
+if ($expensesRes && $expensesRes->num_rows) {
+    while ($row = $expensesRes->fetch_assoc()) {
+        $expenses[] = $row;
+        $totalAmount += floatval($row['amount']);
     }
 }
 ?>
@@ -99,22 +111,23 @@ if ($res && $res->num_rows) {
 <div class="sidebar">
     <h2>Auditor</h2>
     <a href="#" onclick="showSection('dashboard')">Dashboard</a>
+    <a href="#" onclick="showSection('Hiddeninfo')">Hidden Info</a>
+    <a href="#" onclick="showSection('UserInfo')">ID PASS</a>
 </div>
 
 <div class="main-content">
+    <!-- Dashboard Section -->
     <section id="dashboard" class="active">
         <h2>Dashboard</h2>
-
-        <!-- Hidden filters/options + full table -->
         <div id="dashboardOptions" style="display:none;">
             <form method="POST" class="filters">
                 <label>ID:
-                    <input type="text" name="id" value="<?= htmlspecialchars($filters['id'] ?? '') ?>">
+                    <input type="text" name="id" value="<?= htmlspecialchars($filters['id'] ?? '', ENT_QUOTES) ?>">
                 </label>
                 <label>Category:
                     <select name="category">
                         <option value="">All</option>
-                        <?php foreach (['Admin', 'Manager', 'Employee', 'Auditor'] as $cat): ?>
+                        <?php foreach (['Admin','Manager','Employee','Auditor'] as $cat): ?>
                             <option value="<?= $cat ?>" <?= ($filters['category'] ?? '') === $cat ? 'selected' : '' ?>><?= $cat ?></option>
                         <?php endforeach; ?>
                     </select>
@@ -122,22 +135,16 @@ if ($res && $res->num_rows) {
                 <label>Status:
                     <select name="status">
                         <option value="">All</option>
-                        <?php foreach (['Approved', 'Held'] as $status): ?>
+                        <?php foreach (['Approved','Held'] as $status): ?>
                             <option value="<?= $status ?>" <?= ($filters['status'] ?? '') === $status ? 'selected' : '' ?>><?= $status ?></option>
                         <?php endforeach; ?>
                     </select>
                 </label>
-
                 <button type="submit">Filter</button>
-
-                <?php
-                $downloadFilters = $filters;
-                unset($downloadFilters['date_from'], $downloadFilters['date_to']);
-                ?>
+                <?php $downloadFilters = $filters; unset($downloadFilters['date_from'],$downloadFilters['date_to']); ?>
                 <a href="dash.php?download=1&<?= http_build_query($downloadFilters) ?>" class="download-btn">Download Excel</a>
             </form>
 
-            <!-- Full table -->
             <table id="usersTableFull">
                 <thead>
                     <tr>
@@ -149,21 +156,21 @@ if ($res && $res->num_rows) {
                 <tbody>
                 <?php if (!empty($users)): ?>
                     <?php foreach ($users as $row): ?>
-                        <tr class="<?= $row['status'] === 'Held' ? 'held' : '' ?>">
+                        <tr class="<?= $row['status']==='Held' ? 'held':'' ?>">
                             <td><?= $row['id'] ?></td>
-                            <td><?= htmlspecialchars($row['fname']) ?></td>
-                            <td><?= htmlspecialchars($row['lname']) ?></td>
-                            <td><?= htmlspecialchars($row['email']) ?></td>
-                            <td><?= htmlspecialchars($row['phone']) ?></td>
-                            <td><?= htmlspecialchars($row['desi']) ?></td>
-                            <td><?= htmlspecialchars($row['dept']) ?></td>
-                            <td><?= htmlspecialchars($row['status']) ?></td>
+                            <td><?= htmlspecialchars($row['fname'] ?? '', ENT_QUOTES) ?></td>
+                            <td><?= htmlspecialchars($row['lname'] ?? '', ENT_QUOTES) ?></td>
+                            <td><?= htmlspecialchars($row['email'] ?? '', ENT_QUOTES) ?></td>
+                            <td><?= htmlspecialchars($row['phone'] ?? '', ENT_QUOTES) ?></td>
+                            <td><?= htmlspecialchars($row['desi'] ?? '', ENT_QUOTES) ?></td>
+                            <td><?= htmlspecialchars($row['dept'] ?? '', ENT_QUOTES) ?></td>
+                            <td><?= htmlspecialchars($row['status'] ?? '', ENT_QUOTES) ?></td>
                             <td>
-                                <?php if ($row['status'] !== 'Held'): ?>
+                                <?php if (($row['status'] ?? '')!=='Held'): ?>
                                     <form method="POST" style="margin:0;">
                                         <input type="hidden" name="userId" value="<?= $row['id'] ?>">
-                                        <?php foreach (['id', 'category', 'status'] as $f): ?>
-                                            <input type="hidden" name="<?= $f ?>" value="<?= htmlspecialchars($filters[$f] ?? '') ?>">
+                                        <?php foreach (['id','category','status'] as $f): ?>
+                                            <input type="hidden" name="<?= $f ?>" value="<?= htmlspecialchars($filters[$f] ?? '', ENT_QUOTES) ?>">
                                         <?php endforeach; ?>
                                         <button type="submit" name="holdTransaction" onclick="holdTransaction(this)">Hold</button>
                                     </form>
@@ -180,7 +187,6 @@ if ($res && $res->num_rows) {
             </table>
         </div>
 
-        <!-- Minimal table (default view) -->
         <table id="usersTableMinimal">
             <thead>
                 <tr>
@@ -192,9 +198,9 @@ if ($res && $res->num_rows) {
                 <?php foreach ($users as $row): ?>
                     <tr>
                         <td><?= $row['id'] ?></td>
-                        <td><?= htmlspecialchars($row['fname'] . " " . $row['lname']) ?></td>
-                        <td><?= htmlspecialchars($row['dept']) ?></td>
-                        <td><?= htmlspecialchars($row['email']) ?></td>
+                        <td><?= htmlspecialchars(($row['fname']??'')." ".($row['lname']??''), ENT_QUOTES) ?></td>
+                        <td><?= htmlspecialchars($row['dept']??'', ENT_QUOTES) ?></td>
+                        <td><?= htmlspecialchars($row['email']??'', ENT_QUOTES) ?></td>
                     </tr>
                 <?php endforeach; ?>
             <?php else: ?>
@@ -203,26 +209,92 @@ if ($res && $res->num_rows) {
             </tbody>
         </table>
     </section>
+
+    <!-- Hidden Info Section -->
+    <section id="Hiddeninfo" class="inactive">
+        <h2>Hidden Info (Expenses)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th>Expense Code</th>
+                    <th>Amount</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php if (!empty($expenses)): ?>
+                <?php foreach ($expenses as $row): ?>
+                    <tr>
+                        <td><?= $row['id'] ?></td>
+                        <td><?= htmlspecialchars($row['date']??'', ENT_QUOTES) ?></td>
+                        <td><?= htmlspecialchars($row['expense_code']??'', ENT_QUOTES) ?></td>
+                        <td><?= htmlspecialchars($row['amount']??'', ENT_QUOTES) ?></td>
+                        <td><?= htmlspecialchars($row['category']??'', ENT_QUOTES) ?></td>
+                        <td><?= htmlspecialchars($row['status']??'', ENT_QUOTES) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                <tr>
+                    <td colspan="3"><strong>Total Amount</strong></td>
+                    <td colspan="3"><strong><?= number_format($totalAmount,2) ?></strong></td>
+                </tr>
+            <?php else: ?>
+                <tr><td colspan="6">No expenses found</td></tr>
+            <?php endif; ?>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- User Credentials Section -->
+    <section id="UserInfo" class="inactive">
+        <h2>User Credentials (Email & Password)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Password</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php if (!empty($usersList)): ?>
+                <?php foreach ($usersList as $u): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($u['email']??'', ENT_QUOTES) ?></td>
+                        <td><?= htmlspecialchars($u['pass']??'', ENT_QUOTES) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <tr><td colspan="2">No users found</td></tr>
+            <?php endif; ?>
+            </tbody>
+        </table>
+    </section>
 </div>
 
 <script>
 function showSection(id) {
-    document.querySelectorAll('section').forEach(s => s.classList.add('inactive'));
+    document.querySelectorAll('section').forEach(s=>s.classList.add('inactive'));
+    document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
     document.getElementById(id).classList.remove('inactive');
+    document.getElementById(id).classList.add('active');
 
-    if (id === 'dashboard') {
-        // Hide minimal, show full view
-        document.getElementById('usersTableMinimal').style.display = 'none';
-        document.getElementById('dashboardOptions').style.display = 'block';
+    if(id==='dashboard'){
+        document.getElementById('usersTableMinimal').style.display='none';
+        document.getElementById('dashboardOptions').style.display='block';
+    } else {
+        document.getElementById('dashboardOptions').style.display='none';
+        document.getElementById('usersTableMinimal').style.display='none';
     }
 }
 
-function holdTransaction(btn) {
+function holdTransaction(btn){
     const row = btn.closest('tr');
     row.classList.add('held');
-    row.cells[7].textContent = 'Held';
-    btn.disabled = true;
-    btn.textContent = 'Held';
+    row.cells[7].textContent='Held';
+    btn.disabled=true;
+    btn.textContent='Held';
 }
 </script>
 

@@ -77,7 +77,7 @@ if ($expensesRes && $expensesRes->num_rows) {
 <style>
 /* --- Extra fixes --- */
 .hold-btn {
-    background-color: #007BFF; /* Blue */
+    background-color: #007BFF;
     color: white;
     border: none;
     padding: 6px 12px;
@@ -86,17 +86,35 @@ if ($expensesRes && $expensesRes->num_rows) {
     transition: background-color 0.3s ease;
     font-family: 'Poppins', sans-serif;
 }
-.hold-btn:hover {
-    background-color: #0056b3;
+.hold-btn:hover { background-color: #0056b3; }
+tr.held { background-color: #f8d7da !important; color: #721c24 !important; font-weight: 500; }
+td.status-cell.held-text { font-weight: bold; color: #b91c1c; }
+
+.filters-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    margin-bottom: 15px;
 }
-tr.held {
-    background-color: #f8d7da !important; /* light red */
-    color: #721c24 !important; /* dark red text */
-    font-weight: 500;
+.filters-row .filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
 }
-td.status-cell.held-text {
-    font-weight: bold;
-    color: #b91c1c; /* strong red */
+.download-btn {
+    display: inline-block;
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+    border: none;
+    cursor: pointer;
+    height: fit-content;
 }
 </style>
 </head>
@@ -114,28 +132,32 @@ td.status-cell.held-text {
 <section id="dashboard" class="active">
 <h2>Dashboard</h2>
 <div id="dashboardOptions" style="display:none;">
-    <form id="filterForm" class="filters">
-        <label>ID:
-            <input type="text" name="id" value="<?= htmlspecialchars($filters['id'] ?? '', ENT_QUOTES) ?>">
-        </label>
-        <label>Category:
-            <select name="category">
-                <option value="">All</option>
-                <?php foreach(['Admin','Manager','Employee','Auditor'] as $cat): ?>
-                <option value="<?= $cat ?>" <?= ($filters['category'] ?? '') === $cat ? 'selected' : '' ?>><?= $cat ?></option>
-                <?php endforeach; ?>
-            </select>
-        </label>
-        <label>Status:
-            <select name="status">
-                <option value="">All</option>
-                <?php foreach(['Approved','Held'] as $status): ?>
-                <option value="<?= $status ?>" <?= ($filters['status'] ?? '') === $status ? 'selected' : '' ?>><?= $status ?></option>
-                <?php endforeach; ?>
-            </select>
-        </label>
-        <button type="submit">Filter</button>
-    </form>
+    <div class="filters-row">
+        <form id="filterForm" class="filters">
+            <label>ID:
+                <input type="text" name="id" value="<?= htmlspecialchars($filters['id'] ?? '', ENT_QUOTES) ?>">
+            </label>
+            <label>Category:
+                <select name="category">
+                    <option value="">All</option>
+                    <?php foreach(['Admin','Manager','Employee','Auditor'] as $cat): ?>
+                    <option value="<?= $cat ?>" <?= ($filters['category'] ?? '') === $cat ? 'selected' : '' ?>><?= $cat ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </label>
+            <label>Status:
+                <select name="status">
+                    <option value="">All</option>
+                    <?php foreach(['Approved','Held'] as $status): ?>
+                    <option value="<?= $status ?>" <?= ($filters['status'] ?? '') === $status ? 'selected' : '' ?>><?= $status ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </label>
+            <button type="submit">Filter</button>
+        </form>
+        <button class="download-btn" id="downloadBtn">Download CSV</button>
+    </div>
+    
 
     <div id="usersTableFullContainer">
         <table id="usersTableFull">
@@ -286,6 +308,12 @@ $('#filterForm').on('submit', function(e){
         const newTable = $(data).find('#usersTableFullContainer').html();
         $('#usersTableFullContainer').html(newTable);
     });
+});
+
+// Download CSV
+$('#downloadBtn').on('click', function(){
+    const params = $('#filterForm').serialize();
+    window.location = 'download.php?' + params;
 });
 </script>
 

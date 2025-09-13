@@ -1,4 +1,4 @@
-
+/* --- General --- */
 body {
     font-family: 'Poppins', sans-serif;
     margin: 0;
@@ -7,7 +7,7 @@ body {
     display: flex;
 }
 
-/* Sidebar */
+/* --- Sidebar --- */
 .sidebar {
     width: 240px;
     background: #1e293b;
@@ -42,7 +42,7 @@ body {
     color: #00bfa6;
 }
 
-/* Main content */
+/* --- Main content --- */
 .main-content {
     margin-left: 240px;
     flex: 1;
@@ -59,11 +59,11 @@ h2 {
     margin-bottom: 15px;
 }
 
+/* --- Forms / Filters --- */
 form {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
-    margin-bottom: 20px;
 }
 form label {
     font-size: 14px;
@@ -88,7 +88,7 @@ form button:hover {
     background: #009e8a;
 }
 
-/* Table */
+/* --- Table --- */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -110,28 +110,81 @@ button.hold:hover {
     background: #dc2626;
 }
 
+/* --- Sections --- */
 .active { display: block; }
 .inactive { display: none; }
 
-.download-btn {
-    display: inline-block;
-    background-color: #007bff;      /* Bootstrap blue */
-    color: #fff;
-    padding: 10px 18px;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: 600;
+/* --- Filter + Download Row --- */
+.filters-row { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    margin-bottom: 15px; 
+    flex-wrap: wrap;
+}
+
+.filters { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 10px; 
+    align-items: center;
+}
+
+.buttons-group {
+    display: flex;
+    gap: 10px;
+}
+
+/* --- Buttons (Filter & Download) --- */
+.filter-btn, .download-btn {
+    height: 40px;              /* same height */
+    padding: 0 18px;           /* width padding */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     font-family: 'Poppins', sans-serif;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+    font-weight: 600;
+    border-radius: 6px;
     border: none;
     cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.download-btn:hover,
-.download-btn:focus {
-    background-color: #0056b3;      /* Darker blue on hover */
-    box-shadow: 0 6px 12px rgba(0, 86, 179, 0.6);
-    outline: none;
+.filter-btn { 
+    background-color: #28a745; /* Green */
+    color: #fff; 
+}
+.filter-btn:hover { 
+    background-color: #218838; 
 }
 
+.download-btn { 
+    background-color: #007bff; /* Blue */
+    color: #fff; 
+}
+.download-btn:hover { 
+    background-color: #0056b3; 
+}
+
+/* --- Hold button --- */
+.hold-btn {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: 'Poppins', sans-serif;
+}
+.hold-btn:hover { background-color: #0056b3; }
+
+tr.held { 
+    background-color: #f8d7da !important; 
+    color: #721c24 !important; 
+    font-weight: 500; 
+}
+td.status-cell.held-text { 
+    font-weight: bold; 
+    color: #b91c1c; 
+}

@@ -1,0 +1,190 @@
+/* --- General --- */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    background: #f1f5f9;
+    color: #333;
+    display: flex;
+}
+
+/* --- Sidebar --- */
+.sidebar {
+    width: 240px;
+    background: #1e293b;
+    color: #fff;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    padding-top: 30px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 3px 0 15px rgba(0,0,0,0.2);
+}
+.sidebar h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-weight: 600;
+    color: #00bfa6;
+}
+.sidebar a {
+    display: block;
+    color: #cbd5e1;
+    padding: 14px 25px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    margin: 5px 15px;
+}
+.sidebar a:hover {
+    background: rgba(0,191,166,0.15);
+    color: #00bfa6;
+}
+
+/* --- Main content --- */
+.main-content {
+    margin-left: 240px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 25px;
+}
+
+h2 {
+    margin-top: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 15px;
+}
+
+/* --- Forms / Filters --- */
+form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+form label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #475569;
+}
+form input, form select {
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+}
+form button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    background: #00bfa6;
+    color: #fff;
+    cursor: pointer;
+}
+form button:hover {
+    background: #009e8a;
+}
+
+/* --- Table --- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+thead { background: #f9fafb; }
+table, th, td { border: 1px solid #e2e8f0; }
+th, td { padding: 12px; text-align: left; }
+tr:nth-child(even){background-color: #f9f9f9;}
+tr:hover {background-color: #f1f1f1;}
+
+button.hold {
+    background: #ef4444;
+    color: #fff;
+}
+button.hold:hover {
+    background: #dc2626;
+}
+
+/* --- Sections --- */
+.active { display: block; }
+.inactive { display: none; }
+
+/* --- Filter + Download Row --- */
+.filters-row { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    margin-bottom: 15px; 
+    flex-wrap: wrap;
+}
+
+.filters { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 10px; 
+    align-items: center;
+}
+
+.buttons-group {
+    display: flex;
+    gap: 10px;
+}
+
+/* --- Buttons (Filter & Download) --- */
+.filter-btn, .download-btn {
+    height: 40px;              /* same height */
+    padding: 0 18px;           /* width padding */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.filter-btn { 
+    background-color: #28a745; /* Green */
+    color: #fff; 
+}
+.filter-btn:hover { 
+    background-color: #218838; 
+}
+
+.download-btn { 
+    background-color: #007bff; /* Blue */
+    color: #fff; 
+}
+.download-btn:hover { 
+    background-color: #0056b3; 
+}
+
+/* --- Hold button --- */
+.hold-btn {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: 'Poppins', sans-serif;
+}
+.hold-btn:hover { background-color: #0056b3; }
+
+tr.held { 
+    background-color: #f8d7da !important; 
+    color: #721c24 !important; 
+    font-weight: 500; 
+}
+td.status-cell.held-text { 
+    font-weight: bold; 
+    color: #b91c1c; 
+}

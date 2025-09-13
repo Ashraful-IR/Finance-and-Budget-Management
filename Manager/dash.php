@@ -30,28 +30,33 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['logout'])) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['Expense'])){
-    $Expname=     $_POST["Expname"];
-    $Purpose=     $_POST["Purpose"];
-    $Amount=      $_POST["Amount"];
-    $Date=        $_POST["Date"];
-    $PayMethod=   $_POST["PayMethod"];
-    $Status=      $_POST["Status"];
-    $Designation= $_POST["Designation"];
-    $Department=  $_POST["Department"];
+    $Expname = $_POST["Expname"];
+    $Purpose = $_POST["Purpose"];
+    $Amount = $_POST["Amount"];
+    $Date = $_POST["Date"];
+    $PayMethod = $_POST["PayMethod"];
+    $Designation = $_POST["Designation"];
+    $Department = $_POST["Department"];
 
-    if(empty($Expname) || empty($Purpose) || empty($Amount) || empty($Date) || empty($PayMethod) || empty($Status) || empty($Designation) || empty($Department)) {
-        $error = "All section should be filled";
+    if(empty($Expname) || empty($Purpose) || empty($Amount) || empty($Date) || empty($PayMethod) || empty($Designation) || empty($Department)) {
+        $error = "All fields should be filled";
     } else {
-        $sql = "INSERT INTO expense (Expname,Purpose,Amount,Date,PayMethod,Status,Designation,Department) VALUES ('$Expname','$Purpose','$Amount','$Date','$PayMethod','$Status','$Designation','$Department')";
+        // Always set new expense as Pending
+        $Status = 'Pending';
+
+        $sql = "INSERT INTO expense (Expname,Purpose,Amount,Date,PayMethod,Status,Designation,Department)
+                VALUES ('$Expname','$Purpose','$Amount','$Date','$PayMethod','$Status','$Designation','$Department')";
+
         if($conn->query($sql) === TRUE ) {
-            $success = "New Expense Submited ";
-            header("Location: " . $_SERVER['PHP_SELF'] . "?success=1");
+            $success = "New Expense Submitted and waiting for authorization.";
+            header("Location: " . $_SERVER['PHP_SELF'] . "#authorize");
             exit();
         } else {
-            $error ="Error" . $conn->error;
+            $error = "Error: " . $conn->error;
         }
     }
 }
+
 
 
 // Calculate totals
@@ -196,6 +201,23 @@ if (isset($_GET['reportId'])) {
         $error = "No expense found with ID: $reportId";
     }
 }
+$pendingExpenses = $conn->query("SELECT * FROM expense WHERE Status='Pending'");
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['approveExpense'])) {
+    $id = (int)$_POST['expenseId'];
+    $conn->query("UPDATE expense SET Status='Approved' WHERE Id=$id");
+    header("Location: ".$_SERVER['PHP_SELF']."#authorize");
+    exit();
+}
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['denyExpense'])) {
+    $id = (int)$_POST['expenseId'];
+    $conn->query("UPDATE expense SET Status='Denied' WHERE Id=$id");
+    header("Location: ".$_SERVER['PHP_SELF']."#authorize");
+    exit();
+}
+
+
 
 ?>
 
@@ -462,9 +484,52 @@ if (isset($_GET['reportId'])) {
 
 
             <section id="authorize" class="section">
-                <h2>Authorize Page</h2>
-                <p>Authorization related content...</p>
+                <h2>Authorize Expenses</h2>
+                <?php if ($pendingExpenses && $pendingExpenses->num_rows > 0): ?>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Purpose</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Payment Method</th>
+                            <th>Designation</th>
+                            <th>Department</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php while($row = $pendingExpenses->fetch_assoc()): ?>
+                        <tr>
+                            <td><?= $row['Id'] ?></td>
+                            <td><?= htmlspecialchars($row['Expname']) ?></td>
+                            <td><?= htmlspecialchars($row['Purpose']) ?></td>
+                            <td><?= number_format($row['Amount'], 2) ?></td>
+                            <td><?= $row['Date'] ?></td>
+                            <td><?= htmlspecialchars($row['PayMethod']) ?></td>
+                            <td><?= htmlspecialchars($row['Designation']) ?></td>
+                            <td><?= htmlspecialchars($row['Department']) ?></td>
+                            <td>
+                                <form method="POST" style="display:inline;">
+                                    <input type="hidden" name="expenseId" value="<?= $row['Id'] ?>">
+                                    <button type="submit" name="approveExpense" class="primary">Accept</button>
+                                </form>
+                                <form method="POST" style="display:inline;">
+                                    <input type="hidden" name="expenseId" value="<?= $row['Id'] ?>">
+                                    <button type="submit" name="denyExpense" class="danger">Deny</button>
+                                </form>
+                            </td>
+                        </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+                <?php else: ?>
+                <p>No pending expenses to authorize.</p>
+                <?php endif; ?>
             </section>
+
 
             <section id="balance" class="section">
                 <h2>Balance Page</h2>

@@ -36,7 +36,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }elseif ($role === "employee") {
                     header("Location: ../Employee/Employee-dashboard.php");
                     exit();
-                }
+                }elseif ($role === "auditor") {
+                    header("Location: ../Auditor/dash.php");
+                    exit();
                 
                 else {
                     $error = "Access allowed only for Admin,Manager,Employee and Auditor";

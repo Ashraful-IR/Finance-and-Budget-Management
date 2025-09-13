@@ -37,6 +37,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['Expense'])){
     $PayMethod = $_POST["PayMethod"];
     $Designation = $_POST["Designation"];
     $Department = $_POST["Department"];
+    
+    
 
     if(empty($Expname) || empty($Purpose) || empty($Amount) || empty($Date) || empty($PayMethod) || empty($Designation) || empty($Department)) {
         $error = "All fields should be filled";

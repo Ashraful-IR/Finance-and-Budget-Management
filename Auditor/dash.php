@@ -28,11 +28,16 @@ function buildFilterSQL($conn, $data) {
     return $sql;
 }
 
-// Handle "Hold" action
+// Handle "Hold" action (AJAX safe)
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['holdTransaction'])) {
     $userId = (int)($_POST['userId'] ?? 0);
     if ($userId > 0) {
-        $conn->query("UPDATE users SET status='Held' WHERE id=$userId");
+        if (!$conn->query("UPDATE users SET status='Held' WHERE id=$userId")) {
+            http_response_code(500);
+            echo "DB update failed: " . $conn->error;
+            exit;
+        }
+        exit("OK");
     }
 }
 
@@ -69,6 +74,31 @@ if ($expensesRes && $expensesRes->num_rows) {
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../Auditor/dash.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<style>
+/* --- Extra fixes --- */
+.hold-btn {
+    background-color: #007BFF; /* Blue */
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: 'Poppins', sans-serif;
+}
+.hold-btn:hover {
+    background-color: #0056b3;
+}
+tr.held {
+    background-color: #f8d7da !important; /* light red */
+    color: #721c24 !important; /* dark red text */
+    font-weight: 500;
+}
+td.status-cell.held-text {
+    font-weight: bold;
+    color: #b91c1c; /* strong red */
+}
+</style>
 </head>
 <body>
 
@@ -127,14 +157,13 @@ if ($expensesRes && $expensesRes->num_rows) {
                     <td><?= htmlspecialchars($row['phone'] ?? '', ENT_QUOTES) ?></td>
                     <td><?= htmlspecialchars($row['desi'] ?? '', ENT_QUOTES) ?></td>
                     <td><?= htmlspecialchars($row['dept'] ?? '', ENT_QUOTES) ?></td>
-                    <td><?= htmlspecialchars($row['status'] ?? '', ENT_QUOTES) ?></td>
+                    <td class="status-cell <?= $row['status']==='Held' ? 'held-text':'' ?>">
+                        <?= htmlspecialchars($row['status'] ?? '', ENT_QUOTES) ?>
+                    </td>
                     <td>
                         <?php if(($row['status'] ?? '')!=='Held'): ?>
-                        <form method="POST" style="margin:0;">
-                            <input type="hidden" name="userId" value="<?= $row['id'] ?>">
-                            <button type="submit" name="holdTransaction" onclick="holdTransaction(this)">Hold</button>
-                        </form>
-                        <?php else: ?>Held<?php endif; ?>
+                        <button type="button" class="hold-btn" data-id="<?= $row['id'] ?>">Hold</button>
+                        <?php else: ?><span class="held-text">Held</span><?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -238,19 +267,22 @@ function showSection(id){
     }
 }
 
-function holdTransaction(btn){
-    const row = btn.closest('tr');
-    row.classList.add('held');
-    row.cells[7].textContent='Held';
-    btn.disabled=true;
-    btn.textContent='Held';
-}
+// AJAX "Hold" button
+$(document).on('click', '.hold-btn', function(e){
+    e.preventDefault();
+    const $btn = $(this);
+    const userId = $btn.data('id');
+    $.post('dash.php', { holdTransaction: 1, userId: userId }, function(){
+        $('#filterForm').submit(); // reload table from DB
+    }).fail(function(xhr){
+        alert("Error: " + xhr.responseText);
+    });
+});
 
 // AJAX Filter Submission
 $('#filterForm').on('submit', function(e){
     e.preventDefault();
     $.post('dash.php', $(this).serialize(), function(data){
-        // Replace only the table body
         const newTable = $(data).find('#usersTableFullContainer').html();
         $('#usersTableFullContainer').html(newTable);
     });

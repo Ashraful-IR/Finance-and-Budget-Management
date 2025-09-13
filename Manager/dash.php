@@ -468,9 +468,9 @@ if (isset($_GET['reportId'])) {
 
             <section id="balance" class="section">
                 <h2>Balance Page</h2>
-                <p>Total Income: $<?php echo number_format($totalIncome, 2); ?></p>
-                <p>Total Expense: $<?php echo number_format($totalExpense, 2); ?></p>
-                <p><strong>Current Balance: $<?php echo number_format($balance, 2); ?></strong></p>
+                <p>Total Income: <?php echo number_format($totalIncome, 2); ?></p>
+                <p>Total Expense: <?php echo number_format($totalExpense, 2); ?></p>
+                <p><strong>Current Balance: <?php echo number_format($balance, 2); ?></strong></p>
             </section>
 
             <section id="transactions" class="section">
